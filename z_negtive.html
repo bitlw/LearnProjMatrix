@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=utf-8>
+        <title>Z negtive test</title>
+        <style>
+            body { margin: 0; }
+            canvas { width: 100%; height: 100% }
+        </style>
+    </head>
+    <body>
+        <script src="./js/three.min.js"></script>
+
+        <script>
+            var width = 640;
+            var height = 480;
+            var scene = new THREE.Scene();
+
+            // 设置摄像机内参矩阵 K
+            // 由于观察方向是 z 的负半轴，因此 K = [[-fx, 0, u0], [0, fy, v0], [0, 0, 1]
+            var fx = 565.5;
+            var fy = 516.3;
+            var u0 = 328.2; 
+            var v0 = 238.8;
+
+            var near = 0.5;
+            var far = 1000;
+            var l = - u0 / fx * near;
+            var r = (width - u0) / fx * near;
+            var t = v0 / fy * near;
+            var b = (v0 - height) / fy * near;
+            
+            var A =  (far + near) / (near - far);
+            var B = 2 * (far * near) / (near - far);
+            
+            var projectionMatrix = new THREE.Matrix4();
+            projectionMatrix.set(2*near/(r-l), 0, (r + l) / (r - l), 0,
+                              0, 2*near/(t - b), (t + b) / (t - b), 0,
+                              0, 0, A, B,
+                              0, 0, -1, 0);
+    
+            var camera = new THREE.PerspectiveCamera( 15.0, width / height, 0.5, 100000 ); // 这里随意设置，该例子中的投影矩阵是自己计算的
+            camera.projectionMatrix = projectionMatrix; // 设置投影矩阵取代上面初始化时候的设置
+            
+            var transformMatrix = new THREE.Matrix4(); // 旋转和平移矩阵 [R t; 0 0 0 1]
+            transformMatrix.set(-0.7071, 0.7071, 0, 0, 
+                                -0.4083, -0.4083, 0.8165, 0, 
+                                0.5774, 0.5774, 0.5774, -86.603, 
+                                0, 0, 0, 1);
+            // 注意！ 这里的矩阵是世界坐标系到相机坐标系的变换矩阵，因此需要求逆. 这里是 three.js 里面camera定义成这样的，如果在OpenGL里面自己设置则不需要这样
+            camera.applyMatrix(transformMatrix.getInverse(transformMatrix));
+
+            // [u;v;1] = K * (R * [x; y; z] + t)) / zc
+            // 注意这里使用的 R 和 t 就是transformMatrix里面的值，不用求逆
+            var O = new THREE.Vector3( 0, 0, 0); // 世界坐标系原点; [u, v] = [328.2, 238.8]
+            var X = new THREE.Vector3( 10, 0, 0); // 世界坐标系 x 轴上的一点; [u, v] = [278.73, 264.88]
+            var Y = new THREE.Vector3( 0, 10, 0); // 世界坐标系 y 轴上的一点; [u, v] = [377.67, 264.88]
+            var Z = new THREE.Vector3( 0, 0, 10); // 世界坐标系 z 轴上的一点; [u, v] = [328.2, 186.65]
+            var P = new THREE.Vector3( 10, 15, 20); // 世界坐标系中的任意一点; [u, v] = [361.18, 186.65]
+            var Q = new THREE.Vector3( -10, 15, -20); // 世界坐标系中的任意一点; [u, v] = [433.14, 338.37]
+
+            addVector(scene, O, X, 0xff0000);
+            addVector(scene, O, Y, 0x00ff00);
+            addVector(scene, O, Z, 0x0000ff);
+            addVector(scene, O, P, 0xffffff);
+            addVector(scene, O, Q, 0xff00ff);
+
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize( width, height );
+            document.body.appendChild( renderer.domElement );
+            renderer.render(scene, camera);
+
+            function addVector(scene, startPoint, endPoint, color) {
+                var geometry = new THREE.Geometry();
+                geometry.vertices.push(startPoint);
+                geometry.vertices.push(endPoint);            
+                var material = new THREE.LineBasicMaterial( { color: color });
+                var line = new THREE.Line( geometry, material );
+                
+                scene.add( line );
+            }
+
+            document.addEventListener("mousemove", function(event) {
+                console.log("Mouse position:", event.clientX, event.clientY);
+                });
+
+        </script>
+    </body>
+</html>
