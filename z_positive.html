@@ -17,7 +17,7 @@
             var scene = new THREE.Scene();
 
             // 设置摄像机内参矩阵 K
-            // 由于观察方向是 z 的负半轴，因此 K = [[-fx, 0, u0], [0, fy, v0], [0, 0, 1]
+            // 由于观察方向是 z 的正半轴，因此 K = [[fx, 0, u0], [0, fy, v0], [0, 0, 1]
             var fx = 565.5;
             var fy = 516.3;
             var u0 = 328.2; 
@@ -27,17 +27,17 @@
             var far = 1000;
             var l = - u0 / fx * near;
             var r = (width - u0) / fx * near;
-            var t = v0 / fy * near;
-            var b = (v0 - height) / fy * near;
+            var t = - v0 / fy * near;
+            var b = (height - v0) / fy * near;
             
-            var A =  (far + near) / (near - far);
+            var A =  - (far + near) / (near - far);
             var B = 2 * (far * near) / (near - far);
             
             var projectionMatrix = new THREE.Matrix4();
-            projectionMatrix.set(2*near/(r-l), 0, (r + l) / (r - l), 0,
-                              0, 2*near/(t - b), (t + b) / (t - b), 0,
+            projectionMatrix.set(2*near/(r-l), 0, - (r + l) / (r - l), 0,
+                              0, 2*near/(t - b), - (t + b) / (t - b), 0,
                               0, 0, A, B,
-                              0, 0, -1, 0);
+                              0, 0, 1, 0);
     
             var camera = new THREE.PerspectiveCamera( 15.0, width / height, 0.5, 100000 ); // 这里随意设置，该例子中的投影矩阵是自己计算的
             camera.projectionMatrix = projectionMatrix; // 设置投影矩阵取代上面初始化时候的设置
@@ -46,9 +46,9 @@
             // 这里 R/t 的定义是摄像机坐标系到世界坐标系的变换矩阵，也就是 q = R * p + t, p 是空间中的一点在世界坐标系中的坐标，q 是该点在摄像机坐标系中的坐标
             // 这里 R/t 的定义仅仅是我习惯的定义
             var transformMatrix = new THREE.Matrix4(); 
-            transformMatrix.set(-0.7071, 0.7071, 0, 0, 
-                                -0.4083, -0.4083, 0.8165, 0, 
-                                0.5774, 0.5774, 0.5774, -86.603, 
+            transformMatrix.set(0.4608, 0, -0.8875, 3.5841, 
+                                0.4045, -0.8901, 0.2100, 9.0800, 
+                                -0.7900, -0.4558, -0.4102, 70.0336, 
                                 0, 0, 0, 1);
 
             // 注意！ three.js 里面camera定义的矩阵是世界坐标系到相机坐标系的变换矩阵，和我常用的定义相反，因此需要求逆. 
@@ -57,12 +57,12 @@
 
             // [u;v;1] = K * (R * [x; y; z] + t)) / zc
             // 注意这里使用的 R 和 t 就是transformMatrix里面的值，不用求逆
-            var O = new THREE.Vector3( 0, 0, 0); // 世界坐标系原点; [u, v] = [328.2, 238.8]
-            var X = new THREE.Vector3( 10, 0, 0); // 世界坐标系 x 轴上的一点; [u, v] = [278.73, 264.88]
-            var Y = new THREE.Vector3( 0, 10, 0); // 世界坐标系 y 轴上的一点; [u, v] = [377.67, 264.88]
-            var Z = new THREE.Vector3( 0, 0, 10); // 世界坐标系 z 轴上的一点; [u, v] = [328.2, 186.65]
-            var P = new THREE.Vector3( 10, 15, 20); // 世界坐标系中的任意一点; [u, v] = [361.18, 186.65]
-            var Q = new THREE.Vector3( -10, 15, -20); // 世界坐标系中的任意一点; [u, v] = [433.14, 338.37]
+            var O = new THREE.Vector3( 0, 0, 0); // 世界坐标系原点; [u, v] = [357.14, 305.74]
+            var X = new THREE.Vector3( 10, 0, 0); // 世界坐标系 x 轴上的一点; [u, v] = [402.76, 347.86]
+            var Y = new THREE.Vector3( 0, 10, 0); // 世界坐标系 y 轴上的一点; [u, v] = [359.15, 240.21]
+            var Z = new THREE.Vector3( 0, 0, 10); // 世界坐标系 z 轴上的一点; [u, v] = [282.82, 326.35]
+            var P = new THREE.Vector3( 10, 15, 20); // 世界坐标系中的任意一点; [u, v] = [213.43, 282.36]
+            var Q = new THREE.Vector3( -10, 15, -20); // 世界坐标系中的任意一点; [u, v] = [447.47, 157.31]
 
             addVector(scene, O, X, 0xff0000);
             addVector(scene, O, Y, 0x00ff00);
