@@ -10,17 +10,20 @@
     </head>
     <body>
         <script src="./js/three.min.js"></script>
-
+        
         <script>
             // -------- 你可以修改下面的值来进行测试 --------- //
-            var zPositive = false; // 设置为 true 则观察方向为 z 的正半轴，设置为 false 则观察方向为 z 的负半轴
-            var useProjectionMatrix = true; // 设置为 true 则直接计算投影矩阵赋值给 camera；若为 false 则调用 camera的方法设置投影矩阵
+            var zPositive = true; // 设置为 true 则观察方向为 z 的正半轴，设置为 false 则观察方向为 z 的负半轴
 
             // 设置视口参数
             var windowWidth = 640;
             var windowHeight = 480;
+
+            // 用来渲染图形的窗口大小，它不同于窗口大小
             var viewStartX = 40; // z_positive.html 和 z_negtive.html中的 viewStartX 和 viewStartY 都为 0
             var viewStartY = 60;
+            var viewWidth = 580; //  viewStartX + viewWidth <= windowWidth; 我也不知道超过了会发生什么； viewHeight 同样
+            var viewHeight = 400; // z_positive.html 和 z_negtive.html中的这两个参数都和 windowWidth 和 windowHeight 相等
 
             // 设置摄像机内参矩阵 K
             // zPositive = true  时 K = [[fx, 0, u0],  [0, fy, v0], [0, 0, 1]
@@ -37,31 +40,25 @@
             var far = 1000;
             // -------- 你可以修改上面的值来进行测试 --------- //
 
-            // 以下代码在你完全理解之前不要随意修改
-            // 用来渲染图形的窗口大小，它不同于窗口大小
-            var viewWidth = windowWidth - viewStartX;
-            var viewHeight = windowHeight - viewStartY;
-
             // K 的参数往往需要根据渲染窗口大小进行缩放，注意这里用的是 viewWidth 而不是 windowWidth
             ratioX = viewWidth / calibrationWidth;
             ratioY = viewHeight / calibrationHeight;
             fx = fx * ratioX;
-			fy = fy * ratioY;
-			u0 = u0 * ratioX;
-			v0 = v0 * ratioY;
+            fy = fy * ratioY;
+            u0 = u0 * ratioX;
+            v0 = v0 * ratioY;
 
             var projectionMatrix = new THREE.Matrix4();
             // 旋转和平移矩阵 [R t; 0 0 0 1]
             // 这里 R/t 的定义是摄像机坐标系到世界坐标系的变换矩阵，也就是 q = R * p + t, p 是空间中的一点在世界坐标系中的坐标，q 是该点在摄像机坐标系中的坐标
             // 这里 R/t 的定义仅仅是我习惯的定义
             var transformMatrix = new THREE.Matrix4(); 
-            var fov, aspect = viewWidth / viewHeight;
             
             if (zPositive) { // 参考 z_positive.html 中的设置
                 var l = - u0 / fx * near;
-                var r = (width - u0) / fx * near;
+                var r = (viewWidth - u0) / fx * near;
                 var t = - v0 / fy * near;
-                var b = (height - v0) / fy * near;
+                var b = (viewHeight - v0) / fy * near;
                 
                 var A =  - (far + near) / (near - far);
                 var B = 2 * (far * near) / (near - far);
@@ -76,14 +73,12 @@
                                     0.4045, -0.8901, 0.2100, 9.0800, 
                                     -0.7900, -0.4558, -0.4102, 70.0336, 
                                     0, 0, 0, 1);
-
-                fov = 2 * Math.atan2((b - t)/2, f) * 180 / Math.PI;
             }
             else { // 参考 z_negative.html 中的设置
                 var l = - u0 / fx * near;
-                var r = (width - u0) / fx * near;
+                var r = (viewWidth - u0) / fx * near;
                 var t = v0 / fy * near;
-                var b = (v0 - height) / fy * near;
+                var b = (v0 - viewHeight) / fy * near;
                 
                 var A =  (far + near) / (near - far);
                 var B = 2 * (far * near) / (near - far);
@@ -98,16 +93,12 @@
                                 -0.4083, -0.4083, 0.8165, 0, 
                                 0.5774, 0.5774, 0.5774, -86.603, 
                                 0, 0, 0, 1);
-
-                fov = 2 * Math.atan2((t - b)/2, f) * 180 / Math.PI;
             }
             
     
             // 利用 K 来计算 PerspectiveCamera 需要的参数，相当于 OpenGL 里面使用函数 gluPerspective
-            var camera = new THREE.PerspectiveCamera( fov, aspect, near, far ); // 若 useProjectionMatrix = true 则这里的参数无效， 否则就是用这里的参数
-            if (useProjectionMatrix) {
-                camera.projectionMatrix = projectionMatrix; // 设置投影矩阵取代上面初始化时候的设置
-            }
+            var camera = new THREE.PerspectiveCamera( 45, viewWidth / viewHeight, near, far ); // 随意设置，会被后面的替换
+            camera.projectionMatrix = projectionMatrix; // 设置投影矩阵取代上面初始化时候的设置
 
             // 注意！ three.js 里面camera定义的矩阵是世界坐标系到相机坐标系的变换矩阵，和我常用的定义相反，因此需要求逆. 
             // 如果在OpenGL里面直接操作ModelView那个矩阵则不用求逆
@@ -134,9 +125,10 @@
                 console.log("Mouse position:", event.clientX, event.clientY);
                 });
 
-
             var renderer = new THREE.WebGLRenderer();
-            renderer.setSize( width, height );
+            renderer.setSize( windowWidth, windowHeight );
+            renderer.setViewport(viewStartX, viewStartY, viewWidth, viewHeight); // 这里的(viewStartX, viewStartY)是左上角点，而OpenGL 中的 glViewport 是左下角点
+
             document.body.appendChild( renderer.domElement );
             renderer.render(scene, camera);
 
