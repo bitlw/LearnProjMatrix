@@ -18,6 +18,8 @@
 
             // 设置摄像机内参矩阵 K
             // 由于观察方向是 z 的正半轴，因此 K = [[fx, 0, u0], [0, fy, v0], [0, 0, 1]
+            // setup camera intrinsic matrix K
+            // since the observation direction is the positive half axis of z, K = [[fx, 0, u0], [0, fy, v0], [0, 0, 1]
             var fx = 565.5;
             var fy = 516.3;
             var u0 = 328.2; 
@@ -39,12 +41,15 @@
                               0, 0, A, B,
                               0, 0, 1, 0);
     
+            // You can random setup the default value of PerspectiveCamera below, it will be replaced by the projectionMatrix above
             var camera = new THREE.PerspectiveCamera( 15.0, width / height, 0.5, 100000 ); // 这里随意设置，该例子中的投影矩阵是自己计算的
             camera.projectionMatrix = projectionMatrix; // 设置投影矩阵取代上面初始化时候的设置
             
-            // 旋转和平移矩阵 [R t; 0 0 0 1]
-            // 这里 R/t 的定义是摄像机坐标系到世界坐标系的变换矩阵，也就是 q = R * p + t, p 是空间中的一点在世界坐标系中的坐标，q 是该点在摄像机坐标系中的坐标
+            // 旋转和平移矩阵 (rotation and translation matrix) [R t; 0 0 0 1]
+            // q = R * p + t, p 是空间中的一点在世界坐标系中的坐标，q 是该点在摄像机坐标系中的坐标
             // 这里 R/t 的定义仅仅是我习惯的定义
+            // q = R * p + t, p is the coordinate of a point in space in the world coordinate system, 
+            // and q is the coordinate of the point in the camera coordinate system
             var transformMatrix = new THREE.Matrix4(); 
             transformMatrix.set(0.4608, 0, -0.8875, 3.5841, 
                                 0.4045, -0.8901, 0.2100, 9.0800, 
@@ -53,16 +58,20 @@
 
             // 注意！ three.js 里面camera定义的矩阵是世界坐标系到相机坐标系的变换矩阵，和我常用的定义相反，因此需要求逆. 
             // 如果在OpenGL里面直接操作ModelView那个矩阵则不用求逆
+            // Note! The matrix defined in the camera in three.js is the transformation matrix from the world coordinate system to the camera coordinate system,
+            // which is opposite to the definition I often use, so it needs to be inverted.
+            // If you directly operate the ModelView matrix in OpenGL, you don't need to invert it.
             camera.applyMatrix(transformMatrix.getInverse(transformMatrix));
 
             // [u;v;1] = K * (R * [x; y; z] + t)) / zc
             // 注意这里使用的 R 和 t 就是transformMatrix里面的值，不用求逆
-            var O = new THREE.Vector3( 0, 0, 0); // 世界坐标系原点; [u, v] = [357.14, 305.74]
-            var X = new THREE.Vector3( 10, 0, 0); // 世界坐标系 x 轴上的一点; [u, v] = [402.76, 347.86]
-            var Y = new THREE.Vector3( 0, 10, 0); // 世界坐标系 y 轴上的一点; [u, v] = [359.15, 240.21]
-            var Z = new THREE.Vector3( 0, 0, 10); // 世界坐标系 z 轴上的一点; [u, v] = [282.82, 326.35]
-            var P = new THREE.Vector3( 10, 15, 20); // 世界坐标系中的任意一点; [u, v] = [213.43, 282.36]
-            var Q = new THREE.Vector3( -10, 15, -20); // 世界坐标系中的任意一点; [u, v] = [447.47, 157.31]
+            // Note that the R and t used here are the values in transformMatrix, no need to invert
+            var O = new THREE.Vector3( 0, 0, 0); // original point in world; [u, v] = [357.14, 305.74]
+            var X = new THREE.Vector3( 10, 0, 0); // a point on axis x; [u, v] = [402.76, 347.86]
+            var Y = new THREE.Vector3( 0, 10, 0); // a point on axis y; [u, v] = [359.15, 240.21]
+            var Z = new THREE.Vector3( 0, 0, 10); // a point on axis z; [u, v] = [282.82, 326.35]
+            var P = new THREE.Vector3( 10, 15, 20); // an arbitrary point; [u, v] = [213.43, 282.36]
+            var Q = new THREE.Vector3( -10, 15, -20); // another arbitrary point; [u, v] = [447.47, 157.31]
 
             addVector(scene, O, X, 0xff0000);
             addVector(scene, O, Y, 0x00ff00);
@@ -71,6 +80,8 @@
             addVector(scene, O, Q, 0xff00ff);
 
             // 图形渲染完毕后可以将鼠标移至上面那些点的位置，查看是否与上面计算的的图像坐标(u, v)一致
+            // After the graphics are rendered, you can move the mouse to the position of those points above to see 
+            //if the image coordinates (u, v) calculated above are consistent
             document.addEventListener("mousemove", function(event) {
                 console.log("Mouse position:", event.clientX, event.clientY);
                 });

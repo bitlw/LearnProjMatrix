@@ -13,34 +13,44 @@
         
         <script>
             // -------- 你可以修改下面的值来进行测试 --------- //
-            var zPositive = true; // 设置为 true 则观察方向为 z 的正半轴，设置为 false 则观察方向为 z 的负半轴
+            // -------- You can modify the data below for testing --------- //
 
-            // 设置视口参数
+            // 设置为 true 则观察方向为 z 的正半轴，设置为 false 则观察方向为 z 的负半轴
+            // Set to true to observe the positive half-axis of z, and set to false to observe the negative half-axis of z
+            var zPositive = true; 
+
+            // 设置整个窗口大小
+            // setup window size of the entire UI
             var windowWidth = 640;
             var windowHeight = 480;
 
             // 用来渲染图形的窗口大小，它不同于窗口大小
-            var viewStartX = 40; // z_positive.html 和 z_negtive.html中的 viewStartX 和 viewStartY 都为 0
+            // setup viewport of the rendering area, which is different from the window size
+            var viewStartX = 40; // viewStartX and viewStartY are actually set to 0 in z_positive.html and z_negtive.html
             var viewStartY = 60;
-            var viewWidth = 580; //  viewStartX + viewWidth <= windowWidth; 我也不知道超过了会发生什么； viewHeight 同样
-            var viewHeight = 400; // z_positive.html 和 z_negtive.html中的这两个参数都和 windowWidth 和 windowHeight 相等
+            var viewWidth = 580; //  viewStartX + viewWidth <= windowWidth; So does viewHeight 
+            var viewHeight = 400;
 
             // 设置摄像机内参矩阵 K
-            // zPositive = true  时 K = [[fx, 0, u0],  [0, fy, v0], [0, 0, 1]
-            // zPositive = false 时 K = [[-fx, 0, u0], [0, fy, v0], [0, 0, 1]
+            // zPositive = true, K = [[fx, 0, u0],  [0, fy, v0], [0, 0, 1]
+            // zPositive = false, K = [[-fx, 0, u0], [0, fy, v0], [0, 0, 1]
             var fx = 565.5;
             var fy = 516.3;
             var u0 = 328.2; 
             var v0 = 238.8;
             var calibrationWidth = 640; // 摄像机在标定时候的分辨率
-            var calibrationHeight = 480;
+            var calibrationHeight = 480; // the resolution of the image which is used for camera calibration
 
             // 设置远近裁剪面
+            // setup near and far clipping plane
             var near = 0.5;
             var far = 1000;
             // -------- 你可以修改上面的值来进行测试 --------- //
+            // -------- You can modify the data above for testing --------- //
 
             // K 的参数往往需要根据渲染窗口大小进行缩放，注意这里用的是 viewWidth 而不是 windowWidth
+            // parameters of often need to be scaled according to the size of the rendering window. 
+            // Note that viewWidth is used here rather than windowWidth
             ratioX = viewWidth / calibrationWidth;
             ratioY = viewHeight / calibrationHeight;
             fx = fx * ratioX;
@@ -49,12 +59,14 @@
             v0 = v0 * ratioY;
 
             var projectionMatrix = new THREE.Matrix4();
-            // 旋转和平移矩阵 [R t; 0 0 0 1]
-            // 这里 R/t 的定义是摄像机坐标系到世界坐标系的变换矩阵，也就是 q = R * p + t, p 是空间中的一点在世界坐标系中的坐标，q 是该点在摄像机坐标系中的坐标
+            // 旋转和平移矩阵 (rotation and translation matrix) [R t; 0 0 0 1]
+            // q = R * p + t, p 是空间中的一点在世界坐标系中的坐标，q 是该点在摄像机坐标系中的坐标
             // 这里 R/t 的定义仅仅是我习惯的定义
+            // q = R * p + t, p is the coordinate of a point in space in the world coordinate system, 
+            // and q is the coordinate of the point in the camera coordinate system
             var transformMatrix = new THREE.Matrix4(); 
             
-            if (zPositive) { // 参考 z_positive.html 中的设置
+            if (zPositive) { // same as z_positive.html 
                 var l = - u0 / fx * near;
                 var r = (viewWidth - u0) / fx * near;
                 var t = - v0 / fy * near;
@@ -69,12 +81,13 @@
                                 0, 0, 1, 0);
 
                 // 可以修改 R/t 数据，但可能会有些困难，算错了可能会让物体不在视野范围内
+                // You can modify the R/t data, but the object is not visible if you provide wrong data.
                 transformMatrix.set(0.4608, 0, -0.8875, 3.5841, 
                                     0.4045, -0.8901, 0.2100, 9.0800, 
                                     -0.7900, -0.4558, -0.4102, 70.0336, 
                                     0, 0, 0, 1);
             }
-            else { // 参考 z_negative.html 中的设置
+            else { // same as z_negative.html
                 var l = - u0 / fx * near;
                 var r = (viewWidth - u0) / fx * near;
                 var t = v0 / fy * near;
@@ -89,29 +102,33 @@
                               0, 0, -1, 0);
 
                 // 可以修改 R/t 数据，但可能会有些困难，算错了可能会让物体不在视野范围内
+                // You can modify the R/t data, but the object is not visible if you provide wrong data.
                 transformMatrix.set(-0.7071, 0.7071, 0, 0, 
                                 -0.4083, -0.4083, 0.8165, 0, 
                                 0.5774, 0.5774, 0.5774, -86.603, 
                                 0, 0, 0, 1);
             }
             
-    
-            // 利用 K 来计算 PerspectiveCamera 需要的参数，相当于 OpenGL 里面使用函数 gluPerspective
+            // You can random setup the default value of PerspectiveCamera below, it will be replaced by the projectionMatrix above
             var camera = new THREE.PerspectiveCamera( 45, viewWidth / viewHeight, near, far ); // 随意设置，会被后面的替换
             camera.projectionMatrix = projectionMatrix; // 设置投影矩阵取代上面初始化时候的设置
 
             // 注意！ three.js 里面camera定义的矩阵是世界坐标系到相机坐标系的变换矩阵，和我常用的定义相反，因此需要求逆. 
             // 如果在OpenGL里面直接操作ModelView那个矩阵则不用求逆
+            // Note! The matrix defined in the camera in three.js is the transformation matrix from the world coordinate system to the camera coordinate system,
+            // which is opposite to the definition I often use, so it needs to be inverted.
+            // If you directly operate the ModelView matrix in OpenGL, you don't need to invert it.
             camera.applyMatrix(transformMatrix.getInverse(transformMatrix));
 
             // [u;v;1] = K * (R * [x; y; z] + t)) / zc
             // 注意这里使用的 R 和 t 就是transformMatrix里面的值，不用求逆
-            var O = new THREE.Vector3( 0, 0, 0); // 世界坐标系原点; 请自己计算 (u, v) 坐标，类似 z_positive.html/z_negtive.html 中的例子
-            var X = new THREE.Vector3( 10, 0, 0); // 世界坐标系 x 轴上的一点;
-            var Y = new THREE.Vector3( 0, 10, 0); // 世界坐标系 y 轴上的一点; 
-            var Z = new THREE.Vector3( 0, 0, 10); // 世界坐标系 z 轴上的一点;
-            var P = new THREE.Vector3( 10, 15, 20); // 世界坐标系中的任意一点; 
-            var Q = new THREE.Vector3( -10, 15, -20); // 世界坐标系中的任意一点; 
+            // Note that the R and t used here are the values in transformMatrix, no need to invert
+            var O = new THREE.Vector3( 0, 0, 0); // original point in world; calculate (u, v) yourself，or you can refer to projection.py
+            var X = new THREE.Vector3( 10, 0, 0); // a point on axis x;
+            var Y = new THREE.Vector3( 0, 10, 0); // a point on axis y; 
+            var Z = new THREE.Vector3( 0, 0, 10); // a point on axis z;
+            var P = new THREE.Vector3( 10, 15, 20); // an arbitrary point; 
+            var Q = new THREE.Vector3( -10, 15, -20); // another arbitrary point; 
 
             var scene = new THREE.Scene();
             addVector(scene, O, X, 0xff0000);
@@ -121,13 +138,17 @@
             addVector(scene, O, Q, 0xff00ff);
 
             // 图形渲染完毕后可以将鼠标移至上面那些点的位置，查看是否与上面计算的的图像坐标(u, v)一致
+            // After the graphics are rendered, you can move the mouse to the position of those points above to see 
+            //if the image coordinates (u, v) calculated above are consistent
             document.addEventListener("mousemove", function(event) {
                 console.log("Mouse position:", event.clientX, event.clientY);
                 });
 
             var renderer = new THREE.WebGLRenderer();
-            renderer.setSize( windowWidth, windowHeight );
-            renderer.setViewport(viewStartX, viewStartY, viewWidth, viewHeight); // 这里的(viewStartX, viewStartY)是左上角点，而OpenGL 中的 glViewport 是左下角点
+            renderer.setSize( windowWidth, windowHeight ); // the window size of the entire UI
+            // 这里的(viewStartX, viewStartY)是左上角点，而OpenGL 中的 glViewport 是左下角点
+            // The (viewStartX, viewStartY) here is the upper left corner point, while the glViewport in OpenGL is the lower left corner point
+            renderer.setViewport(viewStartX, viewStartY, viewWidth, viewHeight); 
 
             document.body.appendChild( renderer.domElement );
             renderer.render(scene, camera);

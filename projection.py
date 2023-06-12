@@ -42,6 +42,7 @@ points_uv = []
 
 for pt in points_world:
     P = np.array(pt, dtype=np.float32).reshape(3, 1)
+    # here the fomulation is: [u; v; 1] = K * （R * P + t）/ zc
     q = K @ (R @ P + t)
     q /= q[2, 0]
     u = q[0, 0] + viewStartX
