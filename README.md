@@ -4,11 +4,11 @@ You can also read [《OpenGL 投影矩阵设置》](https://zhuanlan.zhihu.com/p
 
 The code here are used for helping you to understand how OpenGL (Threejs) projection works. \
 When we start to learn 3d reconstruction/Augmented Reality related area, we may learn many concepts include camera intrinsic matrix (K), rotation matrix (R), translation matrix/vector (t), etc. Then we know how to project a 3d point to an image by following formulation:
-$$
+```math
 \begin{pmatrix}
 u \\ v \\ 1
 \end{pmatrix} = K \cdot \left( R \cdot \begin{pmatrix} x \\ y \\ z \end{pmatrix} + t \right) / z_c
-$$
+```
 We may notice that OpenGL doesn't accept matrix K directly but a projection matrix P. So we need to know how to convert K to P. \
 This repo contains some examples to help you understand how to convert K to P and verify the result. 
 
@@ -21,8 +21,8 @@ pip install numpy
 
 # Details of usage
 ## z_negtive.html
-Take z_negtive.html as an example, we create a point P at (10, 15, 20) in world coordinate system and assign white color to line OP. As we can see in the code that ():
-$$
+Take z_negtive.html as an example, we create a point P at (10, 15, 20) in world coordinate system and assign white color to line OP. As we can see in the code, we also setup K and R/t:
+```math
 K = 
 \begin{pmatrix}
 -f_x & 0 & u_0 \\
@@ -34,8 +34,8 @@ K =
 0 & 516.3 & 238.8 \\
 0 & 0 & 1
 \end{pmatrix}
-$$
-$$
+```
+```math
 R = 
 \begin{pmatrix}
 -0.7071 & 0.7071 & 0 \\
@@ -46,18 +46,18 @@ t =
 \begin{pmatrix}
 0 \\ 0 \\ -86.603
 \end{pmatrix}
-$$
+```
 
 Then we calculate the image coordinate of P:
-$$
+```math
 \begin{pmatrix}
 u \\ v \\ 1
 \end{pmatrix} = K \cdot \left( R \cdot \begin{pmatrix} x \\ y \\ z \end{pmatrix} + t \right) / z_c = 
 \begin{pmatrix}
 361.18 \\ 186.65 \\ 1
 \end{pmatrix}
-$$
-Then double click z_negtive.html, press F12 to open console, move your mouse to the white line segment, you will see the mouse position is (361, 187).
+```
+Then double click z_negtive.html, press F12 to open console, move your mouse to the white line segment, you will see the mouse position is (361, 187).\
 <img src='imgs/z_n_point_P.png'>
 
 ## z_positive.html
@@ -98,7 +98,7 @@ v0 = v0 * ratioY
 ```
 3. Calculate image coordinate (u, v) of P as what we did in z_negtive.html and z_positive.html by updated K and R/t.
 
-4. Adjust image coordinate (u, v) by viewport offset. Please note that OpenGL starts from left-bottom corner, but Threejs starts from left-top corner. The image below shows the case of OpenGL. For the case of Threejs, The (viewStartX, viewStartY) should be the distance between the left-top corner of the window and the left-top corner of the viewport (the point O). \
+4. Adjust image coordinate (u, v) by viewport offset. Please note that OpenGL starts from left-bottom corner, but Threejs starts from left-top corner. The image below shows the case of OpenGL. For the case of Threejs, The (viewStartX, viewStartY) should be the distance between the left-top corner of the window and the left-top corner of the viewport (the point O). 
 ```python
 if viewportThreeJS:
     v = q[1, 0] + viewStartY
