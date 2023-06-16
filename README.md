@@ -1,5 +1,6 @@
 # LearnProjMatrix
-You can also read [《OpenGL 投影矩阵设置》](https://zhuanlan.zhihu.com/p/636299906) and [《OpenGL 投影矩阵与摄像机内参的关系（一）》](https://zhuanlan.zhihu.com/p/635801612) for more details.
+You can also read [《OpenGL 投影矩阵设置》](https://zhuanlan.zhihu.com/p/636299906) and [《OpenGL 投影矩阵与摄像机内参的关系（一）》](https://zhuanlan.zhihu.com/p/635801612) for more details.\
+[English version](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) is also provided.
 
 
 The code here are used for helping you to understand how OpenGL (Threejs) projection works. \
