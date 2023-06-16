@@ -1,7 +1,33 @@
 import numpy as np
 
+def lookAt(pointFrom, pointTo, upVector, zPositive, rightHand):
+    zAxis = pointTo - pointFrom
+    zAxis /= np.linalg.norm(zAxis)
+    yAxis = upVector
+    yAxis /= np.linalg.norm(yAxis)
+
+    if rightHand:
+        if zPositive:
+            yAxis = - yAxis
+        else:
+            zAxis = - zAxis
+    else: # left hand
+        if not zPositive:
+            zAxis = - zAxis
+            yAxis = - yAxis
+
+    xAxis = np.cross(yAxis, zAxis)
+    xAxis /= np.linalg.norm(xAxis)
+    yAxis = np.cross(zAxis, xAxis)
+    yAxis /= np.linalg.norm(yAxis)
+
+    R = np.array([xAxis, yAxis, zAxis])
+    t = - R @ pointFrom.reshape(3, 1)
+
+    return R, t
+
 viewportThreeJS = True
-zPositive = True
+zPositive = False
 
 windowWidth = 640
 windowHeight = 480
@@ -24,18 +50,20 @@ u0 = u0 * ratioX
 v0 = v0 * ratioY
 
 K = np.array([[fx, 0, u0], [0, fy, v0], [0, 0, 1]])
-R = np.array([[0.4608, 0, -0.8875],
-              [0.4045, -0.8901, 0.2100],
-              [-0.7900, -0.4558, -0.4102]])
-t = np.array([[3.5841], [9.0800], [70.0336]])
+# R = np.array([[0.4608, 0, -0.8875],
+#               [0.4045, -0.8901, 0.2100],
+#               [-0.7900, -0.4558, -0.4102]])
+# t = np.array([[3.5841], [9.0800], [70.0336]])
+
+R, t = lookAt(np.array([40, 50, 45], dtype=np.float32), np.array([2, 8, 5], dtype=np.float32), np.array([0, 0, 1], dtype=np.float32), zPositive, True)
 
 if not zPositive:
     K[0, 0] = - K[0, 0]
 
-    R = np.array([[-0.7071, 0.7071, 0],
-                  [-0.4083, -0.4083, 0.8165],
-                  [0.5774, 0.5774, 0.5774]])
-    t = np.array([[0.0], [0.0], [-86.603]])
+    # R = np.array([[-0.7071, 0.7071, 0],
+    #               [-0.4083, -0.4083, 0.8165],
+    #               [0.5774, 0.5774, 0.5774]])
+    # t = np.array([[0.0], [0.0], [-86.603]])
 
 points_world = [[0, 0, 0], [10, 0, 0], [0, 10, 0], [0, 0, 10], [10, 15, 20], [-10, 15, -20]]
 points_uv = []
