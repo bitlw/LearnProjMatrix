@@ -1,9 +1,14 @@
 # LearnProjMatrix
-You can also read [《OpenGL 投影矩阵设置》](https://zhuanlan.zhihu.com/p/636299906) and [《OpenGL 投影矩阵与摄像机内参的关系（一）》](https://zhuanlan.zhihu.com/p/635801612) for more details.\
-[English version](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) is also provided.
+The code and documents here are used for helping you to fully understand how OpenGL (Threejs) projection matrix works. \
+If you are learning 3d reconstruction (SFM, SLAM)/Augmented Reality, you will learn how to convert camera intrinsic matrix (K) to OpenGL projection matrix (T), and how we can verify if the calculation is correct or not. \
+I will show the formulation directly here, for more details about how to derive it, please read: [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) or [《OpenGL 投影矩阵与摄像机内参的关系（一）》](https://zhuanlan.zhihu.com/p/635801612). \
 
+The structure of this help is as following:
+1. [Setup](#setup)
+2. [How to convert K to T](#convert-k-to-t) 
+3. [Details of usage of code](#details-of-usage)
+    1. [z_negtive.html](#z_negtive.html)
 
-The code here are used for helping you to understand how OpenGL (Threejs) projection works. \
 When we start to learn 3d reconstruction/Augmented Reality related area, we may learn many concepts include camera intrinsic matrix (K), rotation matrix (R), translation matrix/vector (t), etc. Then we know how to project a 3d point to an image by following formulation:
 ```math
 \begin{pmatrix}
@@ -11,7 +16,7 @@ u \\ v \\ 1
 \end{pmatrix} = K \cdot \left( R \cdot \begin{pmatrix} x \\ y \\ z \end{pmatrix} + t \right) / z_c
 ```
 We may notice that OpenGL doesn't accept matrix K directly but a projection matrix P. So we need to know how to convert K to P. \
-This repo contains some examples to help you understand how to convert K to P and verify the result. 
+
 
 # Setup
 Simply to clone this repo, double click the html file you want to view, that's it. \
@@ -19,6 +24,8 @@ For projection.py, it only depends on numpy, just do following command:
 ```
 pip install numpy
 ```
+# Convert K to T 
+
 
 # Details of usage
 ## z_negtive.html
