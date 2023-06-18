@@ -28,8 +28,8 @@ pip install numpy
 
 
 # Details of usage
-## z_negtive.html
-Take z_negtive.html as an example, we create a point P at (10, 15, 20) in world coordinate system and assign white color to line OP. As we can see in the code, we also setup K and R/t:
+## z_negative.html
+Take z_negative.html as an example, we create a point P at (10, 15, 20) in world coordinate system and assign white color to line OP. As we can see in the code, we also setup K and R/t:
 ```math
 K = 
 \begin{pmatrix}
@@ -65,14 +65,14 @@ u \\ v \\ 1
 361.18 \\ 186.65 \\ 1
 \end{pmatrix}
 ```
-Then double click z_negtive.html, press F12 to open console, move your mouse to the white line segment, you will see the mouse position is (361, 187).\
+Then double click z_negative.html, press F12 to open console, move your mouse to the white line segment, you will see the mouse position is (361, 187).\
 <img src='imgs/z_n_point_P.png'>
 
 ## z_positive.html
 You can do the same thing for z_positive.html.
 
 ## full_test.html and projection.py
-full_test.html is more complex than z_negtive.html and z_positive.html, its viewport is different from window size, and also the image resolution which is used for camera calibration is different from the viewport. \
+full_test.html is more complex than z_negative.html and z_positive.html, its viewport is different from window size, and also the image resolution which is used for camera calibration is different from the viewport. \
 So we should do:
 1. Adjust K by a scale factor to make it suitable for the viewport.
 2. Adjust image coordinate (u, v) by viewport offset.
@@ -104,7 +104,7 @@ fy = fy * ratioY
 u0 = u0 * ratioX
 v0 = v0 * ratioY
 ```
-3. Calculate image coordinate (u, v) of P as what we did in z_negtive.html and z_positive.html by updated K and R/t.
+3. Calculate image coordinate (u, v) of P as what we did in z_negative.html and z_positive.html by updated K and R/t.
 
 4. Adjust image coordinate (u, v) by viewport offset. Please note that OpenGL starts from left-bottom corner, but Threejs starts from left-top corner. The image below shows the case of OpenGL. For the case of Threejs, The (viewStartX, viewStartY) should be the distance between the left-top corner of the window and the left-top corner of the viewport (the point O). 
 ```python
