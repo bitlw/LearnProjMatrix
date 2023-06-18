@@ -33,13 +33,13 @@ $$\begin{align}
 l &= &- u_0 \cdot near / f_x \nonumber \\     
 r &=& (W - u_0) \cdot near / f_x \nonumber \\     
 b &=& - (H - v_0) \cdot near / f_y \nonumber \\  
-t &=& v_0 \cdot near / f_y \end{align}$$
+t &=& v_0 \cdot near / f_y \end{align} ..........................(1)$$
 
 $$\begin{align}   
 l &= &- u_0 \cdot near / f_x \nonumber \\   
 r &=& (W - u_0) \cdot near / f_x \nonumber \\  
 b &=&  (H - v_0) \cdot near / f_y   \nonumber \\  
-t &=& - v_0 \cdot near / f_y \end{align}$$
+t &=& - v_0 \cdot near / f_y \end{align}.............................(2)$$
 
 You can see changes of $b$ and $t$ on (1) and (2). 
 
@@ -50,7 +50,7 @@ $$\begin{equation}
 0 & 0 & \frac{far + near}{near - far} & \frac{2 \cdot near \cdot far}{near - far} \\  
 0 & 0 & -1 & 0    
 \end{pmatrix}
-\end{equation}$$
+\end{equation}..................(3)$$
 
 $$\begin{equation}
 \begin{pmatrix}   
@@ -59,7 +59,7 @@ $$\begin{equation}
 0 & 0 & -\frac{far + near}{near - far} & \frac{2 \cdot near \cdot far}{near - far} \\  
 0 & 0 & 1 & 0     
 \end{pmatrix}
-\end{equation}$$
+\end{equation}..................(4)$$
 
 The only difference between formulation (3) and (4) are the signs of the third column. 
 
