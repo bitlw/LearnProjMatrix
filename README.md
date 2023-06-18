@@ -1,20 +1,22 @@
 # LearnProjMatrix
 The code and documents here are used for helping you to fully understand how OpenGL (Threejs) projection matrix works. \
 If you are learning 3d reconstruction (SFM, SLAM)/Augmented Reality, you will learn how to convert camera intrinsic matrix (K) to OpenGL projection matrix (T), and how we can verify if the calculation is correct or not. \
-I will show the formulation directly here, for more details about how to derive it, please read: [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) or [《OpenGL 投影矩阵与摄像机内参的关系（一）》](https://zhuanlan.zhihu.com/p/635801612). \
+I will show the formulation directly here, for more details about how to derive it, please read: [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) or [《OpenGL 投影矩阵与摄像机内参的关系（一）》](https://zhuanlan.zhihu.com/p/635801612) and [《OpenGL 投影矩阵设置》](https://zhuanlan.zhihu.com/p/636299906). \
 
 The structure of this help is as following:
 1. [Setup](#setup)
 2. [How to convert K to T](#convert-k-to-t) 
 3. [Details of usage of code](#details-of-usage)
-    1. [z_negtive.html](#z_negtive.html)
+    1. [z_negative.html](#z_negative.html) and [z_positive.html](#z_positive.html) are the simplest case. 
+    2. [full_test.html](#full_test.html) is still simple enough (only a little bit complex than z_negative and z_positive), it contains different viewport and window size, and also the image resolution which is used for camera calibration is different from the viewport. It still only contains right hand coordinate system and hard code rotation and translation matrix.
+    3. [proj_lookat_demo.html](#proj_lookat_demo.html) is a complete demo, it contains left hand coordinate system and rotation and translation matrix are calculated by lookat (details is on the way). I also provide  [projection.py](#projection.py) to help to calculate the 2d coordinates of all test points, but it's better you can calculate them yourself.
 
 When we start to learn 3d reconstruction/Augmented Reality related area, we may learn many concepts include camera intrinsic matrix (K), rotation matrix (R), translation matrix/vector (t), etc. Then we know how to project a 3d point to an image by following formulation:
-```math
-\begin{pmatrix}
+
+$$\begin{pmatrix}
 u \\ v \\ 1
-\end{pmatrix} = K \cdot \left( R \cdot \begin{pmatrix} x \\ y \\ z \end{pmatrix} + t \right) / z_c
-```
+\end{pmatrix} = K \cdot \left( R \cdot \begin{pmatrix} x \\ y \\ z \end{pmatrix} + t \right) / z_c$$
+
 We may notice that OpenGL doesn't accept matrix K directly but a projection matrix P. So we need to know how to convert K to P. \
 
 
@@ -25,7 +27,40 @@ For projection.py, it only depends on numpy, just do following command:
 pip install numpy
 ```
 # Convert K to T 
+Firstly I will provide 4 formulas directly.
 
+$$\begin{align}     l &= &- u_0 \cdot near / f_x \nonumber \\     r &=& (W - u_0) \cdot near / f_x \nonumber \\     b &=& - (H - v_0) \cdot near / f_y \nonumber \\     t &=& v_0 \cdot near / f_y \end{align}$$
+
+$$\begin{align}     l &= &- u_0 \cdot near / f_x \nonumber \\     r &=& (W - u_0) \cdot near / f_x \nonumber \\     b &=&  (H - v_0) \cdot near / f_y   \nonumber \\     t &=& - v_0 \cdot near / f_y \end{align}$$
+
+You can see changes of $b$ and $t$ on (1) and (2). 
+
+$$\begin{equation} \begin{pmatrix}     \frac{2 \cdot near}{r - l} & 0 & \frac{r+l}{r-l} & 0 \\     0 & \frac{2 \cdot near}{t - b} & \frac{t+b}{t-b} & 0 \\     0 & 0 & \frac{far + near}{near - far} & \frac{2 \cdot near \cdot far}{near - far} \\     0 & 0 & -1 & 0     \end{pmatrix} \end{equation}$$
+
+$$\begin{equation} \begin{pmatrix}     \frac{2 \cdot near}{r - l} & 0 & -\frac{r+l}{r-l} & 0 \\     0 & \frac{2 \cdot near}{t - b} & -\frac{t+b}{t-b} & 0 \\     0 & 0 & -\frac{far + near}{near - far} & \frac{2 \cdot near \cdot far}{near - far} \\     0 & 0 & 1 & 0     \end{pmatrix}\end{equation}$$
+
+The only difference between formulation (3) and (4) are the signs of the third column. 
+
+<div align=center><img src='imgs/coor_4.svg' width="200%"></div>
+<div align=center>Figure 1</div>
+
+Figure 1 shows four cases of camera coordinate system, which are right-hand (z negative), right-hand (z positive), left-hand (z positive) and left-hand (z negative). \
+1. For right-hand (z negative), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (1) and (3)***:
+
+$$\begin{pmatrix} -f_x & 0 & u_0 \\ 0 & f_y & v_0 \\ 0 & 0 & 1 \end{pmatrix}$$
+
+2. For right-hand (z positive), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (2) and (4)***:
+
+$$\begin{pmatrix} f_x & 0 & u_0 \\ 0 & f_y & v_0 \\ 0 & 0 & 1 \end{pmatrix}$$
+
+
+3. For left-hand (z positive), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (1) and (4)***:
+
+$$\begin{pmatrix} f_x & 0 & u_0 \\ 0 & -f_y & v_0 \\ 0 & 0 & 1 \end{pmatrix}$$
+
+4. For left-hand (z negative), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (2) and (3)***:
+
+$$\begin{pmatrix} -f_x & 0 & u_0 \\ 0 & -f_y & v_0 \\ 0 & 0 & 1 \end{pmatrix}$$
 
 # Details of usage
 ## z_negative.html
