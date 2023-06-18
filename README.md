@@ -14,8 +14,12 @@ The structure of this help is as following:
 When we start to learn 3d reconstruction/Augmented Reality related area, we may learn many concepts include camera intrinsic matrix (K), rotation matrix (R), translation matrix/vector (t), etc. Then we know how to project a 3d point to an image by following formulation:
 
 $$\begin{pmatrix}
-u \\ v \\ 1
-\end{pmatrix} = K \cdot \left( R \cdot \begin{pmatrix} x \\ y \\ z \end{pmatrix} + t \right) / z_c$$
+u \\ 
+v \\ 
+1
+\end{pmatrix} = K \cdot \left( R \cdot \begin{pmatrix} x \\ 
+y \\ 
+z \end{pmatrix} + t \right) / z_c$$
 
 We may notice that OpenGL doesn't accept matrix K directly but a projection matrix P. So we need to know how to convert K to P. 
 
