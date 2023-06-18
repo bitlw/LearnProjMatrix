@@ -17,7 +17,7 @@ $$\begin{pmatrix}
 u \\ v \\ 1
 \end{pmatrix} = K \cdot \left( R \cdot \begin{pmatrix} x \\ y \\ z \end{pmatrix} + t \right) / z_c$$
 
-We may notice that OpenGL doesn't accept matrix K directly but a projection matrix P. So we need to know how to convert K to P. \
+We may notice that OpenGL doesn't accept matrix K directly but a projection matrix P. So we need to know how to convert K to P. 
 
 
 # Setup
@@ -29,15 +29,37 @@ pip install numpy
 # Convert K to T 
 Firstly I will provide 4 formulas directly.
 
-$$\begin{align}     l &= &- u_0 \cdot near / f_x \nonumber \\     r &=& (W - u_0) \cdot near / f_x \nonumber \\     b &=& - (H - v_0) \cdot near / f_y \nonumber \\     t &=& v_0 \cdot near / f_y \end{align}$$
+$$\begin{align}     
+l &= &- u_0 \cdot near / f_x \nonumber \\     
+r &=& (W - u_0) \cdot near / f_x \nonumber \\     
+b &=& - (H - v_0) \cdot near / f_y \nonumber \\  
+t &=& v_0 \cdot near / f_y \end{align}$$
 
-$$\begin{align}     l &= &- u_0 \cdot near / f_x \nonumber \\     r &=& (W - u_0) \cdot near / f_x \nonumber \\     b &=&  (H - v_0) \cdot near / f_y   \nonumber \\     t &=& - v_0 \cdot near / f_y \end{align}$$
+$$\begin{align}   
+l &= &- u_0 \cdot near / f_x \nonumber \\   
+r &=& (W - u_0) \cdot near / f_x \nonumber \\  
+b &=&  (H - v_0) \cdot near / f_y   \nonumber \\  
+t &=& - v_0 \cdot near / f_y \end{align}$$
 
 You can see changes of $b$ and $t$ on (1) and (2). 
 
-$$\begin{equation} \begin{pmatrix}     \frac{2 \cdot near}{r - l} & 0 & \frac{r+l}{r-l} & 0 \\     0 & \frac{2 \cdot near}{t - b} & \frac{t+b}{t-b} & 0 \\     0 & 0 & \frac{far + near}{near - far} & \frac{2 \cdot near \cdot far}{near - far} \\     0 & 0 & -1 & 0     \end{pmatrix} \end{equation}$$
+$$\begin{equation}
+\begin{pmatrix}   
+\frac{2 \cdot near}{r - l} & 0 & \frac{r+l}{r-l} & 0 \\  
+0 & \frac{2 \cdot near}{t - b} & \frac{t+b}{t-b} & 0 \\    
+0 & 0 & \frac{far + near}{near - far} & \frac{2 \cdot near \cdot far}{near - far} \\  
+0 & 0 & -1 & 0    
+\end{pmatrix}
+\end{equation}$$
 
-$$\begin{equation} \begin{pmatrix}     \frac{2 \cdot near}{r - l} & 0 & -\frac{r+l}{r-l} & 0 \\     0 & \frac{2 \cdot near}{t - b} & -\frac{t+b}{t-b} & 0 \\     0 & 0 & -\frac{far + near}{near - far} & \frac{2 \cdot near \cdot far}{near - far} \\     0 & 0 & 1 & 0     \end{pmatrix}\end{equation}$$
+$$\begin{equation}
+\begin{pmatrix}   
+\frac{2 \cdot near}{r - l} & 0 & -\frac{r+l}{r-l} & 0 \\  
+0 & \frac{2 \cdot near}{t - b} & -\frac{t+b}{t-b} & 0 \\  
+0 & 0 & -\frac{far + near}{near - far} & \frac{2 \cdot near \cdot far}{near - far} \\  
+0 & 0 & 1 & 0     
+\end{pmatrix}
+\end{equation}$$
 
 The only difference between formulation (3) and (4) are the signs of the third column. 
 
@@ -47,20 +69,36 @@ The only difference between formulation (3) and (4) are the signs of the third c
 Figure 1 shows four cases of camera coordinate system, which are right-hand (z negative), right-hand (z positive), left-hand (z positive) and left-hand (z negative). \
 1. For right-hand (z negative), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (1) and (3)***:
 
-$$\begin{pmatrix} -f_x & 0 & u_0 \\ 0 & f_y & v_0 \\ 0 & 0 & 1 \end{pmatrix}$$
+$$\begin{pmatrix}
+-f_x & 0 & u_0 \\
+0 & f_y & v_0 \\
+0 & 0 & 1 
+\end{pmatrix}$$
 
 2. For right-hand (z positive), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (2) and (4)***:
 
-$$\begin{pmatrix} f_x & 0 & u_0 \\ 0 & f_y & v_0 \\ 0 & 0 & 1 \end{pmatrix}$$
+$$\begin{pmatrix}
+f_x & 0 & u_0 \\ 
+0 & f_y & v_0 \\
+0 & 0 & 1
+\end{pmatrix}$$
 
 
 3. For left-hand (z positive), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (1) and (4)***:
 
-$$\begin{pmatrix} f_x & 0 & u_0 \\ 0 & -f_y & v_0 \\ 0 & 0 & 1 \end{pmatrix}$$
+$$\begin{pmatrix}
+f_x & 0 & u_0 \\ 
+0 & -f_y & v_0 \\ 
+0 & 0 & 1 
+\end{pmatrix}$$
 
 4. For left-hand (z negative), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (2) and (3)***:
 
-$$\begin{pmatrix} -f_x & 0 & u_0 \\ 0 & -f_y & v_0 \\ 0 & 0 & 1 \end{pmatrix}$$
+$$\begin{pmatrix}
+-f_x & 0 & u_0 \\ 
+0 & -f_y & v_0 \\ 
+0 & 0 & 1 
+\end{pmatrix}$$
 
 # Details of usage
 ## z_negative.html
