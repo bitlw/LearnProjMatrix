@@ -19,6 +19,10 @@
             // Set to true to observe the positive half-axis of z, and set to false to observe the negative half-axis of z
             var zPositive = true; 
 
+            // 设置为 true 则为右手坐标系，设置为 false 则为左手坐标系
+            // Set to true for right-handed coordinate system, and set to false for left-handed coordinate system
+            var rightHand = false; 
+
             // 设置整个窗口大小
             // setup window size of the entire UI
             var windowWidth = 640;
@@ -63,7 +67,11 @@
             u0 = u0 * ratioX;
             v0 = v0 * ratioY;
 
-            var projectionMatrix = new THREE.Matrix4();
+            // 这里包含了4中情况，刚开始的时候建议看 z_positive.html 和 z_negative.html
+            // There are 4 cases here, it is recommended to look at z_positive.html and z_negative.html at the beginning
+            var projectionMatrix = getProjectionMatrix(fx, fy, u0, v0, near, far, zPositive, rightHand);
+
+
             // 旋转和平移矩阵 (rotation and translation matrix) [R t; 0 0 0 1]
             // q = R * p + t, p 是空间中的一点在世界坐标系中的坐标，q 是该点在摄像机坐标系中的坐标
             // 这里 R/t 的定义仅仅是我习惯的定义
@@ -71,35 +79,6 @@
             // and q is the coordinate of the point in the camera coordinate system
             var transformMatrix = lookAt(from, to, up, zPositive, true); 
             console.log("transformMatrix:", transformMatrix);
-            
-            if (zPositive) { // same as z_positive.html 
-                var l = - u0 / fx * near;
-                var r = (viewWidth - u0) / fx * near;
-                var t = - v0 / fy * near;
-                var b = (viewHeight - v0) / fy * near;
-                
-                var A =  - (far + near) / (near - far);
-                var B = 2 * (far * near) / (near - far);
-                
-                projectionMatrix.set(2*near/(r-l), 0, - (r + l) / (r - l), 0,
-                                0, 2*near/(t - b), - (t + b) / (t - b), 0,
-                                0, 0, A, B,
-                                0, 0, 1, 0);
-            }
-            else { // same as z_negative.html
-                var l = - u0 / fx * near;
-                var r = (viewWidth - u0) / fx * near;
-                var t = v0 / fy * near;
-                var b = (v0 - viewHeight) / fy * near;
-                
-                var A =  (far + near) / (near - far);
-                var B = 2 * (far * near) / (near - far);
-                
-                projectionMatrix.set(2*near/(r-l), 0, (r + l) / (r - l), 0,
-                              0, 2*near/(t - b), (t + b) / (t - b), 0,
-                              0, 0, A, B,
-                              0, 0, -1, 0);
-            }
             
             // You can random setup the default value of PerspectiveCamera below, it will be replaced by the projectionMatrix above
             var camera = new THREE.PerspectiveCamera( 45, viewWidth / viewHeight, near, far ); // 随意设置，会被后面的替换
@@ -144,6 +123,52 @@
 
             document.body.appendChild( renderer.domElement );
             renderer.render(scene, camera);
+
+            function getProjectionMatrix(fx, fy, u0, v0, near, far, zPositive, rightHand) {
+                var l = - u0 / fx * near;
+                var r = (viewWidth - u0) / fx * near;
+                var t = - v0 / fy * near;
+                var b = (viewHeight - v0) / fy * near;
+                
+                if (rightHand) {
+                    if (zPositive) { // right hand system and z positive, usually used in 3d reconstruction/SFM/SLAM
+                        return getProjectionMatrixFromClip(l, r, b, t, near, far, zPositive);
+                    }
+                    else { // right hand system, z negative, usually used in OpenGL
+                        return getProjectionMatrixFromClip(l, r, -b, -t, near, far, zPositive);
+                    }
+                }
+                else {
+                    if (zPositive) { // left hand system, z positive
+                        return getProjectionMatrixFromClip(l, r, -b, -t, near, far, zPositive);
+                    }
+                    else { // left hand system, z negative
+                        return getProjectionMatrixFromClip(l, r, b, t, near, far, zPositive);
+                    }
+                }
+            } 
+
+            function getProjectionMatrixFromClip (l, r, b, t, near, far, zPositive) {
+                var projectionMatrix = new THREE.Matrix4();
+                if (zPositive) {
+                    var A =  - (far + near) / (near - far);
+                    var B = 2 * (far * near) / (near - far);
+                    projectionMatrix.set(2*near/(r - l), 0, - (r + l) / (r - l), 0,
+                                        0, 2*near/(t - b), - (t + b) / (t - b), 0,
+                                        0, 0, A, B,
+                                        0, 0, 1, 0);
+                }
+                else {
+                    var A =  (far + near) / (near - far);
+                    var B = 2 * (far * near) / (near - far);
+                    projectionMatrix.set(2*near/(r - l), 0, (r + l) / (r - l), 0,
+                                        0, 2*near/(t - b), (t + b) / (t - b), 0,
+                                        0, 0, A, B,
+                                        0, 0, -1, 0);
+                }
+                return projectionMatrix;
+            }
+
 
             function lookAt(from, to, up, zPositive, rightHand) {
                 // we stands on "from" and look at "to"

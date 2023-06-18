@@ -27,7 +27,8 @@ def lookAt(pointFrom, pointTo, upVector, zPositive, rightHand):
     return R, t
 
 viewportThreeJS = True
-zPositive = False
+zPositive = True
+rightHand = False
 
 windowWidth = 640
 windowHeight = 480
@@ -57,13 +58,17 @@ K = np.array([[fx, 0, u0], [0, fy, v0], [0, 0, 1]])
 
 R, t = lookAt(np.array([40, 50, 45], dtype=np.float32), np.array([2, 8, 5], dtype=np.float32), np.array([0, 0, 1], dtype=np.float32), zPositive, True)
 
-if not zPositive:
-    K[0, 0] = - K[0, 0]
-
-    # R = np.array([[-0.7071, 0.7071, 0],
-    #               [-0.4083, -0.4083, 0.8165],
-    #               [0.5774, 0.5774, 0.5774]])
-    # t = np.array([[0.0], [0.0], [-86.603]])
+if rightHand:
+    if not zPositive:
+        K[0, 0] = - K[0, 0] # OpenGL default: z negative, right hand
+    else:  
+        pass # SFM/SLAM default: z positive, right hand 
+else: # left hand
+    if zPositive: # I never use, but my college tried it
+        K[1, 1] = - K[1, 1]
+    else: # I don't know who use it
+        K[0, 0] = - K[0, 0]
+        K[1, 1] = - K[1, 1]
 
 points_world = [[0, 0, 0], [10, 0, 0], [0, 10, 0], [0, 0, 10], [10, 15, 20], [-10, 15, -20]]
 points_uv = []
