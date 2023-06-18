@@ -1,5 +1,5 @@
 # How to convert camera intrinsic matrix to OpenGL projection matrix
-
+(right-hand with z positive, left-hand are on the way ... )
  We focus on several important questions here:
  1. What is the correct orientation of the coordinate system when we calculate projection matrix?
  2. Where is the image plane? in front of the camera or behind the camera?
