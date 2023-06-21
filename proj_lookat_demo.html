@@ -17,7 +17,7 @@
 
             // 设置为 true 则观察方向为 z 的正半轴，设置为 false 则观察方向为 z 的负半轴
             // Set to true to observe the positive half-axis of z, and set to false to observe the negative half-axis of z
-            var zPositive = true; 
+            var zPositive = false; 
 
             // 设置为 true 则为右手坐标系，设置为 false 则为左手坐标系
             // Set to true for right-handed coordinate system, and set to false for left-handed coordinate system
@@ -60,8 +60,8 @@
             // K 的参数往往需要根据渲染窗口大小进行缩放，注意这里用的是 viewWidth 而不是 windowWidth
             // parameters of often need to be scaled according to the size of the rendering window. 
             // Note that viewWidth is used here rather than windowWidth
-            ratioX = viewWidth / calibrationWidth;
-            ratioY = viewHeight / calibrationHeight;
+            var ratioX = viewWidth / calibrationWidth;
+            var ratioY = viewHeight / calibrationHeight;
             fx = fx * ratioX;
             fy = fy * ratioY;
             u0 = u0 * ratioX;
@@ -77,7 +77,7 @@
             // 这里 R/t 的定义仅仅是我习惯的定义
             // q = R * p + t, p is the coordinate of a point in space in the world coordinate system, 
             // and q is the coordinate of the point in the camera coordinate system
-            var transformMatrix = lookAt(from, to, up, zPositive, true); 
+            var transformMatrix = lookAt(from, to, up, zPositive, rightHand); 
             console.log("transformMatrix:", transformMatrix);
             
             // You can random setup the default value of PerspectiveCamera below, it will be replaced by the projectionMatrix above

@@ -26,8 +26,9 @@ def lookAt(pointFrom, pointTo, upVector, zPositive, rightHand):
 
     return R, t
 
-viewportThreeJS = True
-zPositive = True
+# if you are testing OpenGL with GLM, remember to set viewportThreeJS to False
+viewportThreeJS = False
+zPositive = False
 rightHand = False
 
 windowWidth = 640
@@ -56,7 +57,7 @@ K = np.array([[fx, 0, u0], [0, fy, v0], [0, 0, 1]])
 #               [-0.7900, -0.4558, -0.4102]])
 # t = np.array([[3.5841], [9.0800], [70.0336]])
 
-R, t = lookAt(np.array([40, 50, 45], dtype=np.float32), np.array([2, 8, 5], dtype=np.float32), np.array([0, 0, 1], dtype=np.float32), zPositive, True)
+R, t = lookAt(np.array([40, 50, 45], dtype=np.float32), np.array([2, 8, 5], dtype=np.float32), np.array([0, 0, 1], dtype=np.float32), zPositive, rightHand)
 
 if rightHand:
     if not zPositive:
