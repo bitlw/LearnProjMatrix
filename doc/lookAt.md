@@ -2,43 +2,55 @@ You may see function lookAt in proj_lookat_demo.html and glm_demo/src/main.cpp, 
 
 Similar to projection matrix, lookat will also be affected by whether the camera coordinate system is positive or negative in the z-axis direction and right-hand or left-hand system. I believe you have encountered such confusion: you have seen different results of the lookat function from the Internet (or textbooks), which one is correct?\
 The answer is that they are all correct, but they are calculated in different coordinate systems. That's why you should be very clear about the coordinate system you are using.\
-Before we start to discuss lookAt, let me introduce how we can calculate rotation and translation matrix first.\
+Before we start to discuss lookAt, let me introduce how we can calculate rotation and translation matrix first.
 <div align=center><img src='../imgs/twoCoor.png' width="40%"></div>
 <div align=center>Figure 1</div>
 
 Suppose we have a point in coordinate system $O_1$ has coordinates $(x_1,y_1,z_1)$, and its coordinates in coordinate system $O_2$ are $(x_2,y_2,z_2)$. Then the transformation relationship between these two coordinate systems is:
 
-$$\begin{pmatrix} x_2 \\ y_2 \\ z_2 \end{pmatrix} = R_{21} \cdot \begin{pmatrix} x_1 \\ y_1 \\ z_1\end{pmatrix} + t_{21} \text{             (1)}$$
+$$\begin{pmatrix} x_2 \\ 
+y_2 \\ 
+z_2 \end{pmatrix} = R_{21} \cdot \begin{pmatrix} x_1 \\ 
+y_1 \\ 
+z_1\end{pmatrix} + t_{21} \text{             (1)}$$
 
 where $R_{21}$ is the rotation matrix and $t_{21}$ is the translation matrix. They will convert the point from coordinate system $O_1$ to coordinate system $O_2$.\
 But there will be many different notations (because authors are different). For example, some people use $R_{12}$ or $R_{21}$ or $^2R_1$ or $_1^2R$ to represent this rotation matrix. So when we are trying to discuss rotation/translation matrix, we'd better place the formula (1) first. Under the definition of formula (1), we can easily get the rotation matrix:
 
-$$R_{21} = \begin{pmatrix} X_2 \cdot X_1 & X_2 \cdot Y_1 & X_2 \cdot Z_1 \\ Y_2 \cdot X_1 & Y_2 \cdot Y_1 & Y_2 \cdot Z_1 \\ Z_2 \cdot X_1 & Z_2 \cdot Y_1 & Z_2 \cdot Z_1 \end{pmatrix}
+$$R_{21} = \begin{pmatrix} X_2 \cdot X_1 & X_2 \cdot Y_1 & X_2 \cdot Z_1 \\ 
+Y_2 \cdot X_1 & Y_2 \cdot Y_1 & Y_2 \cdot Z_1 \\
+Z_2 \cdot X_1 & Z_2 \cdot Y_1 & Z_2 \cdot Z_1 \end{pmatrix}
 \text{               (2)}$$
 
 Which means that the three axes of coordinate system $O_2$ are dot product with the three axes of coordinate system $O_1$ respectively. The vectors involved in the dot product must be unit vectors. These vectors should all be described in the same coordinate system, such as all in the description of a coordinate system $O_3$ in space, or $O_1$ or $O_2$ one of them (then one of them will be (1, 0, 0) , (0, 1, 0), (0, 0, 1)).\
 To calculate $t_{21}$, we can substitute $O_1=(0,0,0)$ into formula (1), then we can know that $t_{21}$ represents the coordinates of $O_1$ in coordinate system $O_2$.
 
-Then let's calculate lookAt, suppose we stand on P, look at Q, and the up vector is v.\
+Then let's calculate lookAt, suppose we stand on P, look at Q, and the up vector is v.
 
-#1. right-hand system, z negative direction (OpenGL default)
+# 1. right-hand system, z negative direction (OpenGL default)
 <div align=center><img src='../imgs/lookat_zn_r.png' width="50%"></div>
 <div align=center>Figure 2</div>
 
 P, Q, v are all described in the world coordinate system (the $O_1$ in formula (1) ). And our goal is to establish a camera coordinate system at point P ( $O_2$ ), the direction of observation is point Q, and the upward vector is close to v (v may not be perpendicular to the line PQ). Since the established coordinate system is facing the negative direction of the z-axis, the vector PQ means -z, and then let v cross z (the opposite direction of PQ) to get x, and finally z cross x to get y:
 
-$$\begin{cases}   z =normalize( P - Q) \\ x = normalize(v \times z) \\ y = z \times x \end{cases} 
+$$\begin{cases}   z =normalize( P - Q) \\ 
+x = normalize(v \times z) \\ 
+y = z \times x \end{cases} 
 \text{            (3)}$$
 
 公式(3)中的xyz目前都在世界坐标系下( $O_1$ )表示，根据公式(2)可以计算旋转和平移矩阵，注意此时大家都在( $O_1$ )下描述，因此
 The xyz in formulation (3) are all described in the world coordinate system (the $O_1$ in formula (1) ). According to formula (2), we can calculate the rotation and translation matrix. Note that everyone is described in ( $O_1$ ) at this time, so we have $X_1=(1,0,0),Y_1=(0,1,0),Z_1=(0,0,1)$, so the rotation matrix is:
 
-$$R_{21} = \begin{pmatrix} x_1 & x_2 & x_3 \\ y_1 & y_2 & y_3\\ z_1 & z_2 & z_3 \end{pmatrix}
+$$R_{21} = \begin{pmatrix} x_1 & x_2 & x_3 \\ 
+y_1 & y_2 & y_3\\ 
+z_1 & z_2 & z_3 \end{pmatrix}
 \text{                 (4)}$$
 
 The subscript $i$ of each letter in (4) represents the $i$ component of xyz in (3). Since point P is the origin of the camera coordinate system, so it is (0,0,0) in $O_2$, so we have:
 
-$$\begin{pmatrix} 0 \\ 0 \\ 0 \end{pmatrix} = R_{21} \cdot P + t_{21} \Rightarrow t_{21} = - R_{21} \cdot P
+$$\begin{pmatrix} 0 \\ 
+0 \\ 
+0 \end{pmatrix} = R_{21} \cdot P + t_{21} \Rightarrow t_{21} = - R_{21} \cdot P
 \text{              (5)}$$
 
 # 2. right-hand system, z positive direction (SFM/SLAM default)
@@ -46,7 +58,9 @@ There is no changes of P, Q and v, but you may notice the direction of y and z a
 <div align=center><img src='../imgs/lookat_zp_r.png' width="50%"></div>
 <div align=center>Figure 3</div>
 
-$$\begin{cases}   z =normalize( Q- P)   \\ x = normalize(z \times v) \\ y = z \times x \end{cases}
+$$\begin{cases}   z =normalize( Q- P)   \\ 
+x = normalize(z \times v) \\
+y = z \times x \end{cases}
 \text{            (6)}$$
 
 The calculation of $t_{21}$ is the same as the previous one (the formulation (5)).
@@ -55,7 +69,9 @@ The calculation of $t_{21}$ is the same as the previous one (the formulation (5)
 <div align=center><img src='../imgs/lookat_zp_l.png' width="50%"></div>
 <div align=center>Figure 4</div>
 
-$$\begin{cases}   z =normalize( Q- P)   \\ x = normalize(z \times v) \\ y = x \times z  \end{cases}
+$$\begin{cases}   z =normalize( Q- P)   \\ 
+x = normalize(z \times v) \\
+y = x \times z  \end{cases}
 \text{       (7)}$$
 
 The calculation of $t_{21}$ is the same as the previous one (the formulation (5)).
