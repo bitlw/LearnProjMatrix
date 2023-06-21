@@ -1,7 +1,8 @@
 # LearnProjMatrix
+[Update]: glm demo is added, please look into folder glm_demo for more details. \
 The code and documents here are used for helping you to fully understand how OpenGL (Threejs) projection matrix works. \
 If you are learning 3d reconstruction (SFM, SLAM)/Augmented Reality, you will learn how to convert camera intrinsic matrix (K) to OpenGL projection matrix (T), and how we can verify if the calculation is correct or not. \
-I will show the formulation directly here, for more details about how to derive it, please read: [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) or [《OpenGL 投影矩阵与摄像机内参的关系（一）》](https://zhuanlan.zhihu.com/p/635801612) and [《OpenGL 投影矩阵设置》](https://zhuanlan.zhihu.com/p/636299906). \
+I will show the formulation directly here, for more details about how to derive it, please read: [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) or [《OpenGL 投影矩阵与摄像机内参的关系（一）》](https://zhuanlan.zhihu.com/p/635801612) and [《OpenGL 投影矩阵设置》](https://zhuanlan.zhihu.com/p/636299906). 
 
 The structure of this help is as following:
 1. [Setup](#setup)
