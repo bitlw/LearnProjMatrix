@@ -218,7 +218,7 @@ This process is also related to the orientation of z, so it is still divided int
 In figure 7, the plane ABCD (which is the image plane $\alpha$ in Figure 1 (A)) will eventually be mapped to the image we actually see on screen (such as an image with width w and height h). The projection calculation process is essentially no different from the previous derivation of K, but obviously there will be infinite points in the frustum ABCD-EFGH that will be projected to the same point on the plane ABCD (for example, any point on the line BF will be projected to point B), so when rendering, not only the calculation of 2d coordinates must be correct, but also the occlusion relationship must be handled correctly, that is, a reasonable depth coordinate z must be retained while projection. This is why OpenGL's approach is to map all points in the frustum ABCD-EFGH to the NDC coordinate system below.\
 Plane ABCD is the near clipping plane, and the z coordinate of all points on this plane is $-near$. So the coordinates of the conners ABCD in the camera coordinate system can be written as:
 $$A(l,b,-near), B(l,t,-near),C(r,t,-near), D(r,b,-near)$$
-where $l$,$r$,$t$,$b$ are the left/right/top/bottom coordinate of the near clipping plane. And EFGH is the far clipping plane (z = -far). \
+where $l,r,t,b$ are the left/right/top/bottom coordinate of the near clipping plane. And EFGH is the far clipping plane (z = -far). \
 NDC's 8 vertices correspond to the 8 vertices of the frustum in the camera coordinate system one by one, and NDC is a cube with a side length of 2 (each coordinate component is 1 or -1):
 $$A'(-1,-1,-1),B'(-1,1,-1),C'(1,1,-1),D'(1, -1,-1)$$
 $$E'(-1,-1,1),F'(-1,1,1),G'(1,1,1),H'(1, -1,1)$$
@@ -229,9 +229,13 @@ You may notice that NDC is a left-handed coordinate system. In fact, there is no
 
 Actually the question is that: can we use self-define NDC coordinate system. If you use OpenGL as rendering engine, the answer is "no", you cannot modify NDC in any way. Because the process of projecting a point from the camera coordinate system to the screen is: camera coordinate $(x_c, y_c, z_c)$ -> projection coordinate $(x_p, y_p, z_p)$ on the image plane ABCD (plane $\alpha$) -> clip coordinate (NDC coordinate) -> image coordinate on screen. The last step from NDC to image coordinate is completed by glViewport. And this function is an internal function and cannot be override. What this function does is to convert its own defined NDC coordinate into image coordinate on screen, so you cannot modify this definition unless you write rendering engine yourself.\
 By the way, the clip coordinate is not the NDC coordinate. To explain this, we need to mention the concept of homogeneous coordinates. Homogeneous coordinates is to add one dimension to the original coordinate:
+
 $$(x,y,z) \rightarrow (x,y,z,w)$$
+
 The w component is called the homogeneous coordinate. The homogeneous coordinate is not unique, because $(x,y,z,w)$ and $(\lambda x, \lambda y, \lambda z, \lambda w)$ represent the same point. So we usually use the normalized homogeneous coordinate, that is, the w component is 1. So the clip coordinate is actually the normalized homogeneous coordinate.\
+
 $$(x_{clip} / w_{clip}, y_{clip} / w_{clip}, z_{clip} / w_{clip}) = (x_{ndc}, y_{ndc}, z_{ndc})$$
+
 Why do we need to add one dimension? Because we want to use matrix to represent the projection process, and the projection process is essentially a linear transformation. The projection matrix is a 4x4 matrix, and the coordinate is a 4x1 vector. So we need to add one dimension to the original coordinate to make it a 4x1 vector.\
 Previously we use:
 
