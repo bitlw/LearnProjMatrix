@@ -1,5 +1,4 @@
 # How to convert camera intrinsic matrix to OpenGL projection matrix
-(right-hand with z positive, left-hand are on the way ... )\
 This document is a supplement for the code in this repo, it will discuss more details of how we can convert camera intrinsic matrix to OpenGL projection matrix.\
 And please also take a look threejs demo (*.html) and glm demo.
 
@@ -400,7 +399,7 @@ $$\begin{pmatrix}
 
 Till now we have derived the projection matrix T, and we can set up OpenGL now. But we only get the NDC coordinates, we still need to convert NDC to screen coordinates. However, the last step is not controllable if we are not writing our own rendering engine, we can only call the glViewport function in OpenGL.
 
-<div align=center><img src="../imgs/viewport2.png" style="filter: invert(1);" width="60%" align="middle"/></div>
+<div align=center><img src="../imgs/viewport2.png"  width="60%" align="middle"/></div>
 <div align=center>Figure 9</div>
 
 See figure 9. The window size for rendering is W*H, but the actual area for drawing is only the green part in the middle, which is w*h. Here we usually call the function $glViewport(x_0, y_0, w, h)$. Note that the starting point $(x_0, y_0)$ is calculated from the ***lower left*** corner of the window, not the ***upper left*** corner (Threejs is the ***upper left*** corner). Therefore, the point (-1, -1, -1) in NDC will be mapped to point A in the figure. The entire NDC near clipping plane will be mapped to the green rectangle in the figure. So we have:
@@ -410,7 +409,7 @@ $$\frac{1 - y_{NDC}}{1 - (-1)} = \frac{v - (H-h-y_0)}{h} \Rightarrow v = \frac{h
 
 At last, we know how the projection matrix T is composed of $l, r, b, t, near, far$, and the last step is to convert the camera intrinsic matrix K to $l, r, b, t$. \
 The image plane $\alpha$ is the near clipping plane ABCD, and the relationship between K and them can be calculated by simple geometric relationship. Note the direction of the xy axis (especially when the ***direction is the positive direction of the z axis***).
-<div align=center><img src="../imgs/K2lrbt.png" style="filter: invert(1);" width="60%" align="middle"/></div>
+<div align=center><img src="../imgs/K2lrbt.png" width="60%" align="middle"/></div>
 <div align=center>Figure 10</div>
 
 $$\begin{eqnarray}    
@@ -421,3 +420,122 @@ t &=& v_0 \cdot \delta y = v_0 \cdot near / f_y
 \end{eqnarray}$$
 
 Then we finished all steps from K to projection T.
+We still have three cases to consider: right-hand z positive, left-hand z positive, and right-hand z negative. The analysis are very similar to each other, let me just pick left-hand z positive as an example. \
+
+### 3.2 Left-hand, z positive
+<div align=center><img src="../imgs/frustum_left_p.png" width="60%"/></div>
+<div align=center>Figure 11</div>
+Since the plane ABCD is the image plane $\alpha$ and $f=near$ , for any 3d point, we can convert its camera coordinates to projection coordinates as what we did in the previous section. 
+
+$$
+\begin{equation}
+\begin{cases}
+    \frac{x_c}{z_c} = \frac{x_p}{f} => x_p = f \cdot \frac{x_c}{z_c} => x_p = near \cdot \frac{x_c}{z_c} \\
+    \frac{y_c}{z_c} = \frac{y_p}{f} => y_p = f \cdot \frac{y_c}{z_c}=> y_p = near \cdot \frac{y_c}{z_c}
+\end{cases}
+\end{equation}$$
+
+
+<div align=center><img src="../imgs/imgCoor.svg" width="60%"/></div>
+<div align=center>Figure 12</div>
+Based on Figure 12 we can get:
+
+$$\begin{equation}
+\begin{cases}
+(u - u_0) \cdot \delta x = x_p \\
+(v_0 - v) \cdot \delta y = y_p
+\end{cases}
+\end{equation}$$
+
+Then:
+
+$$\begin{equation}
+    \begin{cases}
+    u = \frac{f}{\delta x} \cdot \frac{x_c}{z_c} + u_0 \\
+    v = -\frac{f}{\delta y} \cdot \frac{y_c}{z_c} + v_0 \\
+    \end{cases}
+\end{equation}$$
+
+$$\begin{equation}
+    K = 
+    \begin{pmatrix}
+    f_x & 0 & u_0 \\
+    0 & -f_y & v_0 \\
+    0 & 0 & 1
+    \end{pmatrix}
+\end{equation}$$
+
+After that, let's start to calculate the projection matrix T from K.
+
+<div align=center><img src="../imgs/clip2ndc-left-zp.svg" /></div>
+<div align=center>Figure 13</div>
+
+$$\begin{align}
+    \frac{x_p - l}{r - l} = \frac{x_{NDC} - (-1)}{1 - (-1)} \nonumber \\
+    \Rightarrow x_{NDC} = \frac{2x_p}{r - l} - \frac{r + l}{r - 1}
+\end{align}$$
+
+$$\begin{align}
+    x_{NDC} &=& \frac{2x_p}{r - l} - \frac{r + l}{r - 1} \nonumber \\
+    &=& \frac{2 \cdot near \cdot \frac{x_c}{z_c}}{r - l} - \frac{r + l}{r - 1} \nonumber \\
+    &=& \frac{\frac{2 \cdot near}{r - l} \cdot x_c}{z_c}  - \frac{\frac{r + l}{r - 1} \cdot z_c}{z_c} 
+\end{align}$$
+
+Since the denominator is positive $z_c$ , let $w_{clip} = z_c$:
+
+$$\begin{equation}
+    x_{clip} = \frac{2 \cdot near}{r - l} \cdot x_c - \frac{r + l}{r - 1} \cdot z_c
+\end{equation}$$
+
+$$\begin{equation}
+    \begin{pmatrix}
+    x_{clip} \\ 
+    y_{clip} \\ 
+    z_{clip} \\
+    w_{clip}
+    \end{pmatrix}
+    = \begin{pmatrix}
+    \frac{2 \cdot near}{r - l} & 0 & -\frac{r+l}{r-l} & 0 \\
+    . & . & . & . \\
+    . & . & . & . \\
+    0 & 0 & 1 & 0
+    \end{pmatrix}
+    \cdot 
+    \begin{pmatrix}
+    x_c \\ 
+    y _c \\ 
+    z_c \\ 
+    w_c
+    \end{pmatrix}
+\end{equation}$$
+
+Do the same calculation for y and also calculate parameter A and B:
+
+$$\begin{equation}
+    \begin{pmatrix}
+    x_{clip} \\ 
+    y_{clip} \\ 
+    z_{clip} \\ 
+    w_{clip}
+    \end{pmatrix}
+    = \begin{pmatrix}
+    \frac{2 \cdot near}{r - l} & 0 & -\frac{r+l}{r-l} & 0 \\
+    0 & \frac{2 \cdot near}{t - b} & -\frac{t+b}{t-b} & 0 \\
+    0 & 0 & -\frac{far + near}{near - far} & \frac{2 \cdot near \cdot far}{near - far} \\
+    0 & 0 & 1 & 0
+    \end{pmatrix}
+    \cdot 
+    \begin{pmatrix}
+    x_c \\
+    y _c \\ 
+    z_c \\
+    w_c
+    \end{pmatrix}
+\end{equation}$$
+
+$$\begin{eqnarray}
+    l &=& -u_0 \cdot \delta x = - u_0 \cdot near / f_x \nonumber \\
+    r &=& (W - u_0) \cdot \delta x = (W - u_0) \cdot near / f_x \nonumber \\
+    b &=& - (H - v_0) \cdot \delta y = - (H - v_0) \cdot near / f_y \nonumber \\
+    t &=& v_0 \cdot \delta y = v_0 \cdot near / f_y
+\end{eqnarray}$$
