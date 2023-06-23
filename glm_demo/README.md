@@ -22,7 +22,7 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=YOUR_PATH_OF_vcpkg/vcpkg/scripts/buildsystems/vc
 4. Open glm_demo.sln and build it
 
 # Usage
-Similar to proj_lookat_demo.html, this demo includes a complete test of lookAt and projection matrix. You can setup camera pose and projection parameters in main.cpp. Calculate the projection matrix and lookAt matrix yourself and verify if all 2d points on the rendering window are on the correct position. Please read [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) for how to calculate projection matrix; or you can look at projection.py for reference. \
+Similar to proj_lookat_demo.html, this demo includes a complete test of lookAt and projection matrix. You can setup camera pose and projection parameters in main.cpp. Calculate the projection matrix and lookAt matrix yourself and verify if all 2d points on the rendering window are on the correct position. Please read [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) and [lookAt.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/lookAt.md) for how to calculate projection matrix; or you can look at projection.py for reference. \
 main.cpp contains many comments, I think you can understand which parameters you need to setup. Just a reminder here, when you are using html test you will set viewportThreeJS (in projection.py) to true, but in this demo you need to set it to false because we are using OpenGL to render.
 
 Here is an example of how to verify.

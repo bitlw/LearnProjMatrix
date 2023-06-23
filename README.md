@@ -1,5 +1,5 @@
 # Understand OpenGL projection matrix deeply
-[Update]: glm demo is added, please look into folder glm_demo for more details. \
+[Update]: glm and pyglet demo are added, please look into folder glm_demo/pyglet_demo for more details. \
 And added a new document for how we can calculate the rotation/translation matrix by lookat. 
 
 
@@ -13,9 +13,10 @@ The structure of this help is as following:
 3. [Details of usage of code](#details-of-usage)
     1. [z_negative.html](https://github.com/bitlw/LearnProjMatrix/blob/main/z_negative.html) and [z_positive.html](https://github.com/bitlw/LearnProjMatrix/blob/main/z_positive.html) are the simplest case. 
     2. [full_test.html](https://github.com/bitlw/LearnProjMatrix/blob/main/full_test.html) is still simple enough (only a little bit complex than z_negative and z_positive), it contains different viewport and window size, and also the image resolution which is used for camera calibration is different from the viewport. It still only contains right hand coordinate system and hard code rotation and translation matrix.
-    3. [proj_lookat_demo.html](https://github.com/bitlw/LearnProjMatrix/blob/main/proj_lookat_demo.html) is a complete demo, it contains left hand coordinate system and rotation and translation matrix are calculated by lookat (details is on the way). I also provide  [projection.py](#projection.py) to help to calculate the 2d coordinates of all test points, but it's better you can calculate them yourself.
+    3. [proj_lookat_demo.html](https://github.com/bitlw/LearnProjMatrix/blob/main/proj_lookat_demo.html) is a complete demo, it contains left hand coordinate system and rotation and translation matrix are calculated by lookat (see [lookAt.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/lookAt.md)). I also provide  [projection.py](#projection.py) to help to calculate the 2d coordinates of all test points, but it's better you can calculate them yourself.
     4. [glm_demo](https://github.com/bitlw/LearnProjMatrix/blob/main/glm_demo) is a C++ demo for OpengGL with glm. It contains the same setup as proj_lookat_demo.html.
-    5. [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) and [lookAt.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/lookAt.md) are documents for how to derive the formulation which are shown below on section [Convert K to T ](#convert-k-to-t). They can help you to understand deeply about why and how we calculate projection like that.
+    5. [pyglet_demo](https://github.com/bitlw/LearnProjMatrix/blob/main/pyglet_demo) is a python demo for OpengGL with pyglet. Please note that the y axis of mouse position is different (see comments in code)
+    6. [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) and [lookAt.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/lookAt.md) are documents for how to derive the formulation which are shown below on section [Convert K to T ](#convert-k-to-t). They can help you to understand deeply about why and how we calculate projection like that.
 
 # Let's go
 When we start to learn 3d reconstruction/Augmented Reality related area, we may learn many concepts include camera intrinsic matrix (K), rotation matrix (R), translation matrix/vector (t), etc. Then we know how to project a 3d point to an image by following formulation:
