@@ -38,7 +38,6 @@ x = normalize(v \times z) \\
 y = z \times x \end{cases} 
 \text{            (3)}$$
 
-公式(3)中的xyz目前都在世界坐标系下( $O_1$ )表示，根据公式(2)可以计算旋转和平移矩阵，注意此时大家都在( $O_1$ )下描述，因此
 The xyz in formulation (3) are all described in the world coordinate system (the $O_1$ in formula (1) ). According to formula (2), we can calculate the rotation and translation matrix. Note that everyone is described in ( $O_1$ ) at this time, so we have $X_1=(1,0,0),Y_1=(0,1,0),Z_1=(0,0,1)$, so the rotation matrix is:
 
 $$R_{21} = \begin{pmatrix} x_1 & x_2 & x_3 \\ 
