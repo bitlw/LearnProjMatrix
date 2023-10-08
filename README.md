@@ -1,24 +1,6 @@
 # Understand OpenGL projection matrix deeply
-[Update]: new doc [NerfCoordinateDetails.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/NerfCoordinateDetails.md) is added. You can deeply understand the coordinate system used in NeRF especially when you use dataset_type='llff'.
-
-
-The code and documents here are used for helping you to fully understand how OpenGL (Threejs) projection matrix works. \
-If you are learning 3d reconstruction (SFM, SLAM)/Augmented Reality, you will learn how to convert camera intrinsic matrix (K) to OpenGL projection matrix (T), and how we can verify if the calculation is correct or not. \
-I will show the formulation directly here, for more details about how to derive it, please read: [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) or [《OpenGL 投影矩阵与摄像机内参的关系》](https://zhuanlan.zhihu.com/p/635801612) and [《OpenGL 投影矩阵设置》](https://zhuanlan.zhihu.com/p/636299906). 
-
-The structure of this help is as following:
-1. [Setup](#setup)
-2. [How to convert K to T](#convert-k-to-t) 
-3. [Details of usage of code](#details-of-usage)
-    1. [z_negative.html](https://github.com/bitlw/LearnProjMatrix/blob/main/z_negative.html) and [z_positive.html](https://github.com/bitlw/LearnProjMatrix/blob/main/z_positive.html) are the simplest case. 
-    2. [full_test.html](https://github.com/bitlw/LearnProjMatrix/blob/main/full_test.html) is still simple enough (only a little bit complex than z_negative and z_positive), it contains different viewport and window size, and also the image resolution which is used for camera calibration is different from the viewport. It still only contains right hand coordinate system and hard code rotation and translation matrix.
-    3. [proj_lookat_demo.html](https://github.com/bitlw/LearnProjMatrix/blob/main/proj_lookat_demo.html) is a complete demo, it contains left hand coordinate system and rotation and translation matrix are calculated by lookat (see [lookAt.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/lookAt.md)). I also provide  [projection.py](#projection.py) to help to calculate the 2d coordinates of all test points, but it's better you can calculate them yourself.
-    4. [glm_demo](https://github.com/bitlw/LearnProjMatrix/blob/main/glm_demo) is a C++ demo for OpengGL with glm. It contains the same setup as proj_lookat_demo.html.
-    5. [pyglet_demo](https://github.com/bitlw/LearnProjMatrix/blob/main/pyglet_demo) is a python demo for OpengGL with pyglet. Please note that the y axis of mouse position is different (see comments in code)
-    6. [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) and [lookAt.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/lookAt.md) are documents for how to derive the formulation which are shown below on section [Convert K to T ](#convert-k-to-t). They can help you to understand deeply about why and how we calculate projection like that.
-
-# Let's go
-When we start to learn 3d reconstruction/Augmented Reality related area, we may learn many concepts include camera intrinsic matrix (K), rotation matrix (R), translation matrix/vector (t), etc. Then we know how to project a 3d point to an image by following formulation:
+The code and documents here are used for helping you to fully understand how OpenGL (Threejs/glm/pyglet) projection matrix works. \
+If you are learning 3d reconstruction (SFM, SLAM)/Augmented Reality, you will learn how to project a 3d point to a 2d screen by camera intrinsic matrix (K) and rotation (R) and translation (t) matrix. 
 
 $$\begin{pmatrix}
 u \\ 
@@ -28,8 +10,24 @@ v \\
 y \\ 
 z \end{pmatrix} + t \right) / z_c$$
 
-We may notice that OpenGL doesn't accept matrix K directly but a projection matrix P. So we need to know how to convert K to P. 
+How can we verify if the calculation is correct or not? We can render 3d points (or 3d models) on the screen and then check where they are. \
+Given a 3d point (x,y,z) and matrix K, R, t, we should be able to calculate its 2d coordinate (u, v); Then render it by OpenGL (or other engine), we can verify if its position on the screen equals to (u, v) or not.
 
+We may notice that OpenGL doesn't accept matrix K directly but a projection matrix P. So we need to know how to convert K to P. I will show the formulation directly here, for more details about how to derive it, please read: [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md) or [《OpenGL 投影矩阵与摄像机内参的关系》](https://zhuanlan.zhihu.com/p/635801612) and [《OpenGL 投影矩阵设置》](https://zhuanlan.zhihu.com/p/636299906). 
+
+The structure of this help is as following:
+1. [Setup](#setup)
+2. [How to convert K to P](#convert-k-to-p)
+3. [Details of doc](#details-of-doc)
+    1. [OpenGL_Projection.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/OpenGL_Projection.md), I believe this doc answers many questions such as why we can see different coordinate setup in different documents? Where is the image plane? Can we customize NDC?
+    2. [lookAt.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/lookAt.md) shows how to convert result of lookAt to regular rotation (R) and translation (t) matrix.
+    3. [NerfCoordinateDetails.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/NerfCoordinateDetails.md) explains how to run our own data with NeRF, and it contains deeply analysis of the coordinate system used in NeRF especially when we are trying to use dataset_type='llff'.
+4. [Details of usage of code](#details-of-usage)
+    1. [z_negative.html](https://github.com/bitlw/LearnProjMatrix/blob/main/z_negative.html) and [z_positive.html](https://github.com/bitlw/LearnProjMatrix/blob/main/z_positive.html) are the simplest case. I hardcode K,R,t and provide several 3d points. You can calculate their 2d coordinates and check if their positions on the screen equal to your calculation.
+    2. [full_test.html](https://github.com/bitlw/LearnProjMatrix/blob/main/full_test.html) is still simple enough (only a little bit complex than z_negative and z_positive), it contains different viewport and window size, and also the image resolution which is used for camera calibration is different from the viewport. It still only contains right hand coordinate system and hardcode rotation and translation matrix.
+    3. [proj_lookat_demo.html](https://github.com/bitlw/LearnProjMatrix/blob/main/proj_lookat_demo.html) is a complete demo, it contains left hand coordinate system and rotation and translation matrix are calculated by lookat (see [lookAt.md](https://github.com/bitlw/LearnProjMatrix/blob/main/doc/lookAt.md)). I also provide  [projection.py](#projection.py) to help to calculate the 2d coordinates of all test points, but it's better if you can calculate them yourself.
+    4. [glm_demo](https://github.com/bitlw/LearnProjMatrix/blob/main/glm_demo) is a C++ demo for OpengGL with glm. It contains the same setup as proj_lookat_demo.html.
+    5. [pyglet_demo](https://github.com/bitlw/LearnProjMatrix/blob/main/pyglet_demo) is a python demo for OpengGL with pyglet. Please note that the y axis of mouse position is different (see comments in code)
 
 # Setup
 Simply to clone this repo, double click the html file you want to view, that's it. \
@@ -37,7 +35,9 @@ For projection.py, it only depends on numpy, just do following command:
 ```
 pip install numpy
 ```
-# Convert K to T 
+For glm_demo and pyglet_demo, please see readme.md under their folder.
+
+# Convert K to P 
 Firstly I will provide 4 formulas directly.
 
 $$\begin{align}     
@@ -77,8 +77,9 @@ The only difference between formulation (3) and (4) are the signs of the third c
 <div align=center><img src='imgs/coor_4.svg' width="200%"></div>
 <div align=center>Figure 1</div>
 
-Figure 1 shows four cases of camera coordinate system, which are right-hand (z negative), right-hand (z positive), left-hand (z positive) and left-hand (z negative). \
-1. For right-hand (z negative), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (1) and (3)***:
+Figure 1 shows four cases of camera coordinate system, which are right-hand (z negative), right-hand (z positive), left-hand (z positive) and left-hand (z negative). 
+
+1. For right-hand (z negative), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (1) and (3)***(OpenGL default):
 
 $$\begin{pmatrix}
 -f_x & 0 & u_0 \\
@@ -86,7 +87,7 @@ $$\begin{pmatrix}
 0 & 0 & 1 
 \end{pmatrix}$$
 
-2. For right-hand (z positive), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (2) and (4)***:
+2. For right-hand (z positive), the camera intrinsic matrix K is as following and it's projection matrix P is combined by ***formulation (2) and (4)***(SFM/SLAM default):
 
 $$\begin{pmatrix}
 f_x & 0 & u_0 \\ 
@@ -110,6 +111,9 @@ $$\begin{pmatrix}
 0 & -f_y & v_0 \\ 
 0 & 0 & 1 
 \end{pmatrix}$$
+
+# Details of doc
+Please look at [doc](https://github.com/bitlw/LearnProjMatrix/tree/main/doc) if you are interested in the formulations above and want to know where they come from.
 
 # Details of usage
 ## z_negative.html
@@ -149,7 +153,7 @@ u \\ v \\ 1
 361.18 \\ 186.65 \\ 1
 \end{pmatrix}
 ```
-Then double click z_negative.html, press F12 to open console, move your mouse to the white line segment, you will see the mouse position is (361, 187).\
+Then double click z_negative.html, press F12 to open console, move your mouse to the white line segment, you will see the mouse position is (361, 187) which is very close to the calculation (361.18, 186.65).\
 <img src='imgs/z_n_point_P.png'>
 
 ## z_positive.html
