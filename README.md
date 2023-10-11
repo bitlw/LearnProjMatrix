@@ -1,4 +1,6 @@
 # Understand OpenGL projection matrix deeply
+[Update:] Previously I only show the black background when I render virtual object, now I add a demo which can render virtual object on an image captured from real world, and all matrices are calculated from images rather than setup manually. Please see [real_world_demo](https://github.com/bitlw/LearnProjMatrix/tree/main/real_world_demo).
+
 The code and documents here are used for helping you to fully understand how OpenGL (Threejs/glm/pyglet) projection matrix works. \
 If you are learning 3d reconstruction (SFM, SLAM)/Augmented Reality, you will learn how to project a 3d point to a 2d screen by camera intrinsic matrix (K) and rotation (R) and translation (t) matrix. 
 

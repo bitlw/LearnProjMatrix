@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=utf-8>
+        <title>complete test</title>
+        <style>
+            body { margin: 0; }
+            canvas { width: 100%; height: 100% }
+        </style>
+    </head>
+    <body>
+        <script src="../js/three.min.js"></script>
+        
+        <script>
+            async function loadFile(filename) {
+                let response = await fetch(filename);
+                let objContext = await response.text();
+                console.log("fetch file success");
+                return objContext;
+            }
+            async function loadImgAndPose() {
+                let rawInfo = await loadFile("http://localhost:8000/colmap_rst.json");
+                rawInfo = JSON.parse(rawInfo);
+                return rawInfo;
+            }
+
+            async function createTexture(imgName) {
+                return new Promise((resolve, reject) => {
+                    let textureLoader = new THREE.TextureLoader();
+                    textureLoader.load(imgName, (texture) => {
+                        resolve(texture);
+                    }, undefined, (error) => {
+                        reject(error);
+                    });
+                });
+            }
+
+            async function createPlaneWithTexture(imgName, viewWidth, viewHeight) {
+                let texture = await createTexture(imgName);
+                let geometry = new THREE.PlaneGeometry(viewWidth, viewHeight, 0);
+                let material = new THREE.MeshBasicMaterial({ map: texture });
+                let plane = new THREE.Mesh(geometry, material);
+                return plane;
+            }
+
+            async function parseRawInfo(rawInfo, windowConfig) {
+                let info = {'projectionMatrix':[], 'imageTexture':[], 'poseInv':[], 'scene':[], 'camera':[]};
+                
+                let calibrationWidth = rawInfo.K.w;
+                let calibrationHeight = rawInfo.K.h;
+                let viewWidth = windowConfig.viewWidth;
+                let viewHeight = windowConfig.viewHeight;
+                let near = windowConfig.near;
+                let far = windowConfig.far;
+
+                let ratioX = viewWidth / calibrationWidth;
+                let ratioY = viewHeight / calibrationHeight;
+                let fx = rawInfo.K.fx * ratioX;
+                let fy = rawInfo.K.fy * ratioY;
+                let u0 = rawInfo.K.u0 * ratioX;
+                let v0 = rawInfo.K.v0 * ratioY;
+
+                let l = - u0 / fx * near;
+                let r = (viewWidth - u0) / fx * near;
+                let t = - v0 / fy * near;
+                let b = (viewHeight - v0) / fy * near;
+                
+                let A =  - (far + near) / (near - far);
+                let B = 2 * (far * near) / (near - far);
+                
+                info.projectionMatrix = new THREE.Matrix4();
+                info.projectionMatrix.set(2*near/(r-l), 0, - (r + l) / (r - l), 0,
+                                0, 2*near/(t - b), - (t + b) / (t - b), 0,
+                                0, 0, A, B,
+                                0, 0, 1, 0);
+
+                info.camera = new THREE.OrthographicCamera(
+                                viewWidth / -2, // left
+                                viewWidth / 2, // right
+                                viewHeight / 2, // top
+                                viewHeight / -2, // bottom
+                                near,
+                                far);
+                info.camera.position.z = 10;
+
+                for (let i = 0; i < rawInfo.images.length; i++) {
+                    let imgName = "http://localhost:8000/" + rawInfo.images[i];
+                    let texture = await createPlaneWithTexture(imgName, viewWidth, viewHeight);
+                    info.imageTexture.push(texture);
+
+                    var scene = new THREE.Scene();
+                    scene.add(texture);
+                    info.scene.push(scene);
+
+                    let transformMatrix = new THREE.Matrix4(); 
+                    transformMatrix.set(rawInfo.Pose[i][0], rawInfo.Pose[i][1], rawInfo.Pose[i][2], rawInfo.Pose[i][9], 
+                                        rawInfo.Pose[i][3], rawInfo.Pose[i][4], rawInfo.Pose[i][5], rawInfo.Pose[i][10], 
+                                        rawInfo.Pose[i][6], rawInfo.Pose[i][7], rawInfo.Pose[i][8], rawInfo.Pose[i][11], 
+                                        0, 0, 0, 1);
+                    info.poseInv.push(transformMatrix.getInverse(transformMatrix));
+
+                }
+                return info;
+            }
+
+            run = async () => {
+                // -------- You can modify the data below for testing --------- //
+                // setup window size of the entire UI
+                let windowWidth = 1400;
+                let windowHeight = 800;
+
+                // setup viewport of the rendering area, which is different from the window size
+                let viewStartX = 40; // viewStartX and viewStartY are actually set to 0 in z_positive.html and z_negative.html
+                let viewStartY = 60;
+                let viewWidth = 1100; //  viewStartX + viewWidth <= windowWidth; So does viewHeight 
+                let viewHeight = 680;
+
+                // setup near and far clipping plane
+                let near = 0.5;
+                let far = 10000;
+                // -------- You can modify the data above for testing --------- //
+
+                let windowConfig = {'windowWidth':windowWidth, 'windowHeight':windowHeight, 
+                                    'viewStartX':viewStartX, 'viewStartY':viewStartY, 
+                                    'viewWidth':viewWidth, 'viewHeight':viewHeight, 
+                                    'near':near, 'far':far};
+
+                let rawInfo = await loadImgAndPose();
+                let threejsInfo = await parseRawInfo(rawInfo, windowConfig);
+                
+                let currentBackgroundIndex = 0;
+                let imgCount = threejsInfo.imageTexture.length;
+                
+                // You can random setup the default value of PerspectiveCamera below, it will be replaced by the projectionMatrix above
+                let camera = new THREE.PerspectiveCamera( 45, viewWidth / viewHeight, near, far ); 
+                camera.projectionMatrix = threejsInfo.projectionMatrix; 
+                camera.applyMatrix(threejsInfo.poseInv[currentBackgroundIndex]); 
+
+                var A = new THREE.Vector3( rawInfo.Points[0][0], rawInfo.Points[0][1], rawInfo.Points[0][2]); 
+                var B = new THREE.Vector3( rawInfo.Points[1][0], rawInfo.Points[1][1], rawInfo.Points[1][2]); 
+                var C = new THREE.Vector3( rawInfo.Points[2][0], rawInfo.Points[2][1], rawInfo.Points[2][2]); 
+                var D = new THREE.Vector3( rawInfo.Points[3][0], rawInfo.Points[3][1], rawInfo.Points[3][2]); 
+                var E = new THREE.Vector3( rawInfo.Points[4][0], rawInfo.Points[4][1], rawInfo.Points[4][2]); 
+
+                var scene = new THREE.Scene();
+                addVector(scene, A, B, 0xff0000);
+                addVector(scene, B, C, 0x00ff00);
+                addVector(scene, C, D, 0x0000ff);
+                addVector(scene, D, E, 0xff00ff);
+                addVector(scene, E, A, 0xffffff);
+
+                var renderer = new THREE.WebGLRenderer();
+                renderer.setSize( windowWidth, windowHeight ); // the window size of the entire UI
+                // The (viewStartX, viewStartY) here is the upper left corner point, while the glViewport in OpenGL is the lower left corner point
+                renderer.setViewport(viewStartX, viewStartY, viewWidth, viewHeight); 
+                document.body.appendChild( renderer.domElement );
+                rendering(threejsInfo, currentBackgroundIndex, scene, camera, renderer);
+
+                document.addEventListener("mousemove", function(event) {
+                    console.log("Mouse position:", event.clientX, event.clientY);
+                    });
+
+                document.addEventListener("keydown", function(event) {
+                    if (event.key === 'd' || event.key === 'D') {
+                        currentBackgroundIndex = (currentBackgroundIndex + 1) % imgCount;
+                    }
+                    if (event.key === 'a' || event.key === 'A') {
+                        currentBackgroundIndex = (currentBackgroundIndex - 1 + imgCount) % imgCount;
+                    }
+                    var camera = new THREE.PerspectiveCamera( 45, viewWidth / viewHeight, near, far ); 
+                    camera.projectionMatrix = threejsInfo.projectionMatrix; 
+                    camera.applyMatrix(threejsInfo.poseInv[currentBackgroundIndex]);
+                    rendering(threejsInfo, currentBackgroundIndex, scene, camera, renderer);
+                });
+
+                function addVector(scene, startPoint, endPoint, color) {
+                    var geometry = new THREE.Geometry();
+                    geometry.vertices.push(startPoint);
+                    geometry.vertices.push(endPoint);            
+                    var material = new THREE.LineBasicMaterial( { color: color });
+                    var line = new THREE.Line( geometry, material );
+                    
+                    scene.add( line );
+                }
+
+                function rendering(threejsInfo, currentBackgroundIndex, scene, camera, renderer) {
+                    renderer.render( threejsInfo.scene[currentBackgroundIndex], threejsInfo.camera );
+                    renderer.autoClear = false;
+                    renderer.clearDepth();
+                    renderer.render(scene, camera);
+                    renderer.autoClear = true;
+                }
+            }
+            run();
+        </script>
+    </body>
+</html>
