@@ -2,7 +2,7 @@ This is a demo to show how to render virtual objects in front of a real scene.
 
 # Usage
 ```bash
-cd real_world_demo
+cd real_world_demo/textures
 python publish_files.py
 ```
 Then simply to open real_world.html in browser and you will see the result, press "a" to see previous image and press "d" to see next image. \
